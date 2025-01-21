@@ -1,0 +1,107 @@
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
+namespace BB.Di
+{
+	public interface IEntityUnity
+	{
+		IEntity CreateChild(GameObject prefab, bool usePooling);
+	}
+	public partial class EntityImpl : IEntityUnity
+	{
+#if UNITY_EDITOR
+		public Guid DebugGuid { get; private set; } = Guid.NewGuid();
+#endif
+		sealed class UnityPool : IEntityPool
+		{
+			static GameObject _poolsParent;
+			readonly Transform _parent;
+			public readonly List<EntityImpl> _entities = new();
+			public UnityPool(string name)
+			{
+				if (!_poolsParent)
+				{
+					_poolsParent = new GameObject("Entity Pools");
+					UnityEngine.Object.DontDestroyOnLoad(_poolsParent);
+					_poolsParent.transform.ResetData();
+				}
+				_parent = new GameObject(name).transform;
+				_parent.SetParent(_poolsParent.transform);
+				_parent.ResetData();
+			}
+			public void Return(IEntity entity)
+			{
+				_entities.Add(entity as EntityImpl);
+				var root = entity.Require<Root>();
+				root.Transform.SetParent(_parent);
+				root.Transform.ResetData();
+			}
+			public void Remove(IEntity entity) => _entities.Remove(entity as EntityImpl);
+		}
+		Dictionary<GameObject, UnityPool> _childUnityPools;
+		partial void DisposeUnity()
+		{
+			if (_childUnityPools is not null)
+				_childUnityPools.Clear();
+		}
+		public IEntity CreateChild(GameObject prefab, bool usePooling)
+		{
+			if (!usePooling)
+				return CreateGameObjectEntity(prefab, null, this, null);
+			_childUnityPools ??= new();
+			if (!_childUnityPools.TryGetValue(prefab, out var pool))
+			{
+				pool = new UnityPool(prefab.name);
+				_childUnityPools.Add(prefab, pool);
+			}
+			if (!pool._entities.TryRemoveLast(out var entity))
+			{
+				prefab.SetActive(false);
+				var instance = UnityEngine.Object.Instantiate(prefab);
+				prefab.SetActive(true);
+				entity = CreateGameObjectEntity(instance, null, this, pool);
+				_children ??= new();
+				_children.Add(entity);
+				var ego = entity.Require<EntityGameObject>();
+				InvokeCreate(ego);
+				static void InvokeCreate(EntityGameObject ego)
+				{
+					((EntityImpl)ego.Entity._ref).RaiseCreateEvent();
+					foreach (var child in ego._children)
+						InvokeCreate(child);
+				}
+			}
+			return entity;
+		}
+		EntityImpl CreateGameObjectEntity(
+			GameObject go,
+			EntityGameObject parentEgo,
+			EntityImpl parent,
+			IEntityPool pool)
+		{
+			var ego = go.AddComponent<EntityGameObject>();
+			if (parentEgo)
+				parentEgo._children.Add(ego);
+			var entity = CreateEntity(
+				go.name, 
+				parent, 
+				ego.Install, 
+				pool);
+			CreateChildEntities(ego.transform, ego, entity);
+			return entity;
+		}
+		void CreateChildEntities(Transform t, EntityGameObject parentEgo, EntityImpl parent)
+		{
+			foreach (var i in t.childCount)
+			{
+				var c = t.GetChild(i);
+				if (c.GetComponent<EntityBehaviour>())
+				{
+					var entity = CreateGameObjectEntity(c.gameObject, parentEgo, parent, null);
+					entity.InitState(EntityState.Enabled);
+				}
+				else CreateChildEntities(c, parentEgo, parent);
+			}
+		}
+	}
+}
