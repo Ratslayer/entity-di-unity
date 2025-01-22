@@ -20,6 +20,11 @@ public sealed record Root(Transform Transform)
 		get => Transform.position;
 		set => Transform.position = value;
 	}
+	public Quaternion Rotation
+	{
+		get => Transform.rotation;
+		set => Transform.rotation = value;
+	}
 	public float Z
 	{
 		get => Position.z;
