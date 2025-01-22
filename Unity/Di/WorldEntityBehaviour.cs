@@ -6,7 +6,7 @@ namespace BB
 	public sealed class WorldEntityBehaviour : BaseBehaviour
 	{
 		[SerializeField, Required]
-		AbstractInstallerAsset _installer;
+		BaseInstallerAsset _installer;
 		private void Awake()
 		{
 			if (!_installer

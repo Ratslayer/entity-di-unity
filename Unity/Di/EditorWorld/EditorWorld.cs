@@ -15,7 +15,7 @@ namespace BB.Di
 				{
 					var installer
 						= AssetDatabase.LoadAssetAtPath
-						<AbstractInstallerAsset>(InstallerPath);
+						<BaseInstallerAsset>(InstallerPath);
 					var impl = EntityImpl.CreateEntity(
 						"Editor",
 						null,

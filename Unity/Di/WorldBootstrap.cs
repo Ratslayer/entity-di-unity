@@ -13,10 +13,11 @@ namespace BB
 				.AddComponent<WorldManager>();
 			UnityEngine.Object.DontDestroyOnLoad(_worldManager.gameObject);
 			//load project context, aka base world container
-			var context = Resources.Load<AbstractInstallerAsset>(PROJECT_CONTEXT);
+			var context = Resources.Load<BaseInstallerAsset>(PROJECT_CONTEXT);
 			if (!context)
 			{
-				Debug.LogError($"No {PROJECT_CONTEXT} resource of type {typeof(AbstractInstallerAsset).FullName} found");
+				Debug.LogError($"No {PROJECT_CONTEXT} resource of type {typeof(BaseInstallerAsset).FullName} found");
+				UnityEngine.Object.Destroy(_worldManager.gameObject);
 				return;
 			}
 			try
