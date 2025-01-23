@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-
 public sealed record Root(Transform Transform)
 {
 	[OnSpawn]
@@ -10,11 +9,10 @@ public sealed record Root(Transform Transform)
 	[OnDespawn]
 	void OnDespawn()
 	{
-		if (!Transform)
-			return;
 		Transform.gameObject.SetActive(false);
 	}
-	public static implicit operator Vector3(Root root) => root.Transform.position;
+	public static implicit operator Vector3(Root root) 
+		=> root.Transform.position;
 	public Vector3 Position
 	{
 		get => Transform.position;

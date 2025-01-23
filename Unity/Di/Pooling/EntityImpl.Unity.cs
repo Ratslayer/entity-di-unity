@@ -48,12 +48,14 @@ namespace BB.Di
 		{
 			if (!usePooling)
 				return CreateGameObjectEntity(prefab, null, this, null);
+			
 			_childUnityPools ??= new();
 			if (!_childUnityPools.TryGetValue(prefab, out var pool))
 			{
 				pool = new UnityPool(prefab.name);
 				_childUnityPools.Add(prefab, pool);
 			}
+
 			if (!pool._entities.TryRemoveLast(out var entity))
 			{
 				prefab.SetActive(false);
@@ -63,6 +65,9 @@ namespace BB.Di
 				_children ??= new();
 				_children.Add(entity);
 				var ego = entity.Require<EntityGameObject>();
+
+				ego._pool = pool;
+				
 				InvokeCreate(ego);
 				static void InvokeCreate(EntityGameObject ego)
 				{

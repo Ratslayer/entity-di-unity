@@ -12,6 +12,7 @@ namespace BB.Di
 		public Entity Entity => _entity is null ? default : _entity.GetToken();
 		[Inject]
 		IEntity _entity;
+		public IEntityPool _pool;
 		public string Name => name;
 		public void Install(IDiContainer container)
 		{
@@ -25,6 +26,7 @@ namespace BB.Di
 		public void Despawn()
 		{
 			Entity.Despawn();
+			_pool?.Return(Entity._ref);
 		}
 		[OnPostSpawn]
 		void Spawn()
