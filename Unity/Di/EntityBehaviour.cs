@@ -64,6 +64,11 @@ namespace BB.Di
 		}
 
 		public static implicit operator Entity(EntityBehaviour b) => b ? b.Entity : default;
+
+		protected void Get<TComponent>(IDiContainer container)
+		{
+			container.Instance(GetComponent<TComponent>());
+		}
 	}
 	[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
 	public sealed class GetAttribute : Attribute { }

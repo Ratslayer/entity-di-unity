@@ -13,6 +13,11 @@ public sealed record Root(Transform Transform)
 	}
 	public static implicit operator Vector3(Root root) 
 		=> root.Transform.position;
+	public float Scale
+	{
+		get => Transform.localScale.x;
+		set => Transform.localScale = Vector3.one * value;
+	}
 	public Vector3 Position
 	{
 		get => Transform.position;
