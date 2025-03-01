@@ -16,4 +16,13 @@ public static class RandomUtils
 	public static Color Color => Random.ColorHSV(0, 1, 1, 1, 1, 1, 1, 1);
 	public static bool Roll(double chance)
 		=> Value <= chance;
+	public static float Angle => Range(0, 360);
+	public static Vector2 Direction2D
+	{
+		get
+		{
+			var angle = Angle;
+			return new(Mathf.Cos(angle), Mathf.Sin(angle));
+		}
+	}
 }

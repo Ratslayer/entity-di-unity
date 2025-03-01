@@ -4,6 +4,6 @@ public abstract class InstallerAsset : BaseInstallerAsset
 {
 	public override void Install(IDiContainer container)
 	{
-		container.Instance(GetType(), this);
+		container.InjectedInstance(GetType(), this);
 	}
 }
