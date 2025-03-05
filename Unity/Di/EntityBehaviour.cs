@@ -16,8 +16,8 @@ namespace BB.Di
 		public string Name => name;
 		EntityGameObject _entity;
 		public Entity Entity => _entity ? _entity.Entity : default;
-		public void RaiseEvent<T>(T msg) => Entity.RaiseEvent(msg);
-		public void RaiseEvent<T>() => Entity.RaiseEvent<T>();
+		public void RaiseEvent<T>(T msg) => Entity.Publish(msg);
+		public void RaiseEvent<T>() => Entity.Publish<T>();
 		public bool Has<T>(out T elem) => Entity.Has(out elem);
 		protected virtual void Awake()
 		{
