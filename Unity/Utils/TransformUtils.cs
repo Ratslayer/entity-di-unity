@@ -8,6 +8,8 @@ public static class TransformUtils
 		for (var i = t.childCount - 1; i >= 0; i--)
 		{
 			var child = t.GetChild(i);
+			if (!child)
+				continue;
 			child.gameObject.Destroy();
 		}
 	}

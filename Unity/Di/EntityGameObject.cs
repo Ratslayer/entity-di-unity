@@ -23,11 +23,7 @@ namespace BB.Di
 				if (installer != (IEntityInstaller)this)
 					installer.Install(container);
 		}
-		public void Despawn()
-		{
-			Entity.Despawn();
-			_pool?.Return(Entity._ref);
-		}
+		public void Despawn() => Entity.Despawn();
 		[OnPostSpawn]
 		void Spawn()
 		{
