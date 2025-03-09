@@ -1,5 +1,5 @@
-﻿using Sirenix.OdinInspector;
-using UnityEngine;
+﻿using UnityEngine;
+using Sirenix.OdinInspector;
 [HideMonoScript]
 public abstract class BaseBehaviour : MonoBehaviour
 {

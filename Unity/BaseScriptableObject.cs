@@ -1,7 +1,7 @@
 ﻿using Sirenix.OdinInspector;
 using UnityEngine;
 [HideMonoScript]
-public abstract class BaseScriptableObject : ScriptableObject 
+public abstract class BaseScriptableObject : SerializedScriptableObject 
 {
 	public void Dirty()
 	{
