@@ -22,7 +22,7 @@ namespace BB
 		}
 		private void OnCollisionExit(Collision collision)
 		{
-			_enter.Publish(new(collision));
+			_exit.Publish(new(collision));
 		}
 	}
 }
