@@ -1,9 +1,14 @@
 ﻿using BB.Di;
-
-public abstract class InstallerAsset : BaseInstallerAsset
+namespace BB
 {
-	public override void Install(IDiContainer container)
+	public abstract class InstallerAsset : BaseInstallerAsset
 	{
-		container.InjectedInstance(GetType(), this);
+		[Inject]
+		IEntity _entity;
+		protected Entity Entity => _entity.GetToken();
+		public override void Install(IDiContainer container)
+		{
+			container.InjectedInstance(GetType(), this);
+		}
 	}
 }
