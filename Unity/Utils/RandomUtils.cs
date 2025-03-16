@@ -5,6 +5,7 @@ public static class RandomUtils
 {
 	public static float Range(float min, float max) => Random.Range(min, max);
 	public static int Range(int min, int max) => Random.Range(min, max);
+	public static float RandomAngle() => Range(0f, 360f);
 	public static T RandomElement<T>(this IList<T> list)
 		=> list.Count switch
 		{

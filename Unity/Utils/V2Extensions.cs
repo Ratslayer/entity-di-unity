@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-
 public static class V2Extensions
 {
 	public static Vector2 SetX(this Vector2 v, float value) => new(value, v.y);
