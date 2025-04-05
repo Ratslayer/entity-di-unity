@@ -1,25 +1,14 @@
-﻿using System.Collections.Generic;
-using BB.Di;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 namespace BB
 {
-	public sealed record CapsuleArgs(Vector3 P1, Vector3 P2, float Radius);
-	public static class CapsuleUtils
-	{
-		public static CapsuleArgs GetVerticalCapsuleArgs(Vector3 bottom, float height, float radius, float skinWidth)
-		{
-			var r = Mathf.Max(0, radius - skinWidth);
-			var b = bottom + Vector3.up * skinWidth;
-			var h = height - 2 * skinWidth;
-			var p1 = b + Vector3.up * r;
-			var p2 = b + Vector3.up * Mathf.Max(r, h - r);
-			return new(p1, p2, r);
-		}
-	}
 	public static class PhysicsUtils
 	{
 		readonly static RaycastHit[] _raycastHits = new RaycastHit[30];
 		readonly static List<RaycastHit> _hitList = new();
+		public static int ToLayerMask(int layerId)
+			=> 1 << layerId;
 		public static bool HasEntity(this RaycastHit hit, out Entity entity)
 			=> hit.collider.HasEntity(out entity);
 		public static Vector3 GetPosition(this SphereCollider collider)
@@ -78,10 +67,6 @@ namespace BB
 		public static List<RaycastHit> SphereCastAll(Vector3 point,
 			float radius,
 			in RaycastArgs args)
-		//Vector3 dir,
-		//float distance,
-		//int layerMask,
-		//QueryTriggerInteraction triggerInteraction)
 		{
 			var numHits = Physics.SphereCastNonAlloc(
 				point, radius,

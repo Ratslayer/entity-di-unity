@@ -17,6 +17,7 @@ namespace BB.Di
 			static GameObject _poolsParent;
 			readonly Transform _parent;
 			public readonly List<EntityImpl> _entities = new();
+			public uint NumCreatedItems = 0;
 			public UnityPool(string name)
 			{
 				if (!_poolsParent)
@@ -34,21 +35,20 @@ namespace BB.Di
 				_entities.Add(entity as EntityImpl);
 				var root = entity.Require<Root>();
 				root.Transform.SetParent(_parent);
-				root.Transform.ResetData();
+				root.Transform.ResetData(false);
 			}
 			public void Remove(IEntity entity) => _entities.Remove(entity as EntityImpl);
 		}
 		Dictionary<GameObject, UnityPool> _childUnityPools;
 		partial void DisposeUnity()
 		{
-			if (_childUnityPools is not null)
-				_childUnityPools.Clear();
+			_childUnityPools?.Clear();
 		}
 		public IEntity CreateChild(GameObject prefab, bool usePooling)
 		{
 			if (!usePooling)
 				return CreateGameObjectEntity(prefab, null, this, null);
-			
+
 			_childUnityPools ??= new();
 			if (!_childUnityPools.TryGetValue(prefab, out var pool))
 			{
@@ -60,6 +60,7 @@ namespace BB.Di
 			{
 				prefab.SetActive(false);
 				var instance = UnityEngine.Object.Instantiate(prefab);
+				instance.name = $"{prefab.name} {++pool.NumCreatedItems}";
 				prefab.SetActive(true);
 				entity = CreateGameObjectEntity(instance, null, this, pool);
 				_children ??= new();
@@ -67,7 +68,7 @@ namespace BB.Di
 				var ego = entity.Require<EntityGameObject>();
 
 				ego._pool = pool;
-				
+
 				InvokeCreate(ego);
 				static void InvokeCreate(EntityGameObject ego)
 				{
@@ -88,9 +89,9 @@ namespace BB.Di
 			if (parentEgo)
 				parentEgo._children.Add(ego);
 			var entity = CreateEntity(
-				go.name, 
-				parent, 
-				ego.Install, 
+				go.name,
+				parent,
+				ego.Install,
 				pool);
 			CreateChildEntities(ego.transform, ego, entity);
 			return entity;

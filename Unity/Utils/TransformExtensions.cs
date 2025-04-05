@@ -27,11 +27,12 @@ namespace BB
 		}
 		public static int GetSelfChildId(this Transform t)
 			=> t.parent && t.parent.IsChild(t, out var index) ? index : 0;
-		public static void ResetData(this Transform t)
+		public static void ResetData(this Transform t, bool resetScale = true)
 		{
 			t.localPosition = Vector3.zero;
 			t.localRotation = Quaternion.identity;
-			t.localScale = Vector3.one;
+			if (resetScale)
+				t.localScale = Vector3.one;
 		}
 		public static IEnumerable<Transform> GetChildren(this Transform t)
 		{

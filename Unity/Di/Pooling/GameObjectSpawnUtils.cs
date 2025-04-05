@@ -13,7 +13,8 @@ namespace BB
 			if (!parent)
 				parent = World.Entity;
 			if (parent._ref is not IEntityUnity eu)
-				throw new Exception($"Entity implementation does not support creating gameobject children." +
+				throw new Exception(
+					$"Entity implementation does not support creating gameobject children." +
 					$"Check that you're using the original {nameof(EntityImpl)} class.");
 			var entity = eu.CreateChild(prefab, true);
 			args.Apply(entity.Require<Root>());
