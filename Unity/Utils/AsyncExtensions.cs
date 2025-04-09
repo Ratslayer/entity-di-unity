@@ -72,8 +72,9 @@ namespace BB
 			e.Subscribe(OnEventRaised);
 			while (true)
 			{
-				var source = timeoutSource.Link(
-					e.CancellationTokenSource,
+				var source = CancellationTokenSource.CreateLinkedTokenSource(
+					timeoutSource.Token,
+					e.NextEventCancellationToken,
 					externalCancelationToken);
 				await UniTask.Never(source.Token).SuppressCancellationThrow();
 
