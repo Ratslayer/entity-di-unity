@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 public sealed record Root(Transform Transform)
 {
-	[OnSpawn]
-	void OnSpawn()
+	[OnEnable]
+	void OnEnable()
 	{
 		Transform.gameObject.SetActive(true);
 	}
-	[OnDespawn]
-	void OnDespawn()
+	[OnDisable]
+	void OnDisable()
 	{
 		Transform.gameObject.SetActive(false);
 	}
