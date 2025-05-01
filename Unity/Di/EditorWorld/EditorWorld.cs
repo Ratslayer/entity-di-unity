@@ -20,7 +20,8 @@ namespace BB.Di
 						"Editor",
 						null,
 						installer.Install,
-						null);
+						null,
+						true);
 					_entity = impl;
 				}
 				return _entity;

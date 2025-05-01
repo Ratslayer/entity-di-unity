@@ -42,7 +42,7 @@ namespace BB
 			if (!comp)
 				return;
 			comp.gameObject.Despawn();
-		}
+		} 
 		public static void DespawnChildren(this GameObject go)
 		{
 			if (!go)

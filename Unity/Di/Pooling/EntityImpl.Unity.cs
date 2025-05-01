@@ -47,7 +47,7 @@ namespace BB.Di
 		public IEntity CreateChild(GameObject prefab, bool usePooling)
 		{
 			if (!usePooling)
-				return CreateGameObjectEntity(prefab, null, this, null);
+				return CreateGameObjectEntity(prefab, null, this, null, true);
 
 			_childUnityPools ??= new();
 			if (!_childUnityPools.TryGetValue(prefab, out var pool))
@@ -62,7 +62,7 @@ namespace BB.Di
 				var instance = UnityEngine.Object.Instantiate(prefab);
 				instance.name = $"{prefab.name} {++pool.NumCreatedItems}";
 				prefab.SetActive(true);
-				entity = CreateGameObjectEntity(instance, null, this, pool);
+				entity = CreateGameObjectEntity(instance, null, this, pool, true);
 				_children ??= new();
 				_children.Add(entity);
 				var ego = entity.Require<EntityGameObject>();
@@ -83,7 +83,8 @@ namespace BB.Di
 			GameObject go,
 			EntityGameObject parentEgo,
 			EntityImpl parent,
-			IEntityPool pool)
+			IEntityPool pool,
+			bool isRoot)
 		{
 			var ego = go.AddComponent<EntityGameObject>();
 			if (parentEgo)
@@ -92,7 +93,8 @@ namespace BB.Di
 				go.name,
 				parent,
 				ego.Install,
-				pool);
+				pool,
+				isRoot);
 			CreateChildEntities(ego.transform, ego, entity);
 			return entity;
 		}
@@ -103,7 +105,7 @@ namespace BB.Di
 				var c = t.GetChild(i);
 				if (c.GetComponent<EntityBehaviour>())
 				{
-					var entity = CreateGameObjectEntity(c.gameObject, parentEgo, parent, null);
+					var entity = CreateGameObjectEntity(c.gameObject, parentEgo, parent, null, false);
 					entity.InitState(EntityState.Enabled);
 				}
 				else CreateChildEntities(c, parentEgo, parent);
