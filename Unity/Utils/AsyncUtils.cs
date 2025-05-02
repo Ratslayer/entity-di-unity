@@ -11,6 +11,5 @@ namespace BB
 			await UniTask.WaitForEndOfFrame();
 			action();
 		}
-		
 	}
 }

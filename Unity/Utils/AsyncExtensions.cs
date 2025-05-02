@@ -91,5 +91,14 @@ namespace BB
 				}
 			}
 		}
+		public static async UniTask WaitForDespawn(this Entity entity)
+		{
+			while (true)
+			{
+				if (!entity)
+					return;
+				await UniTask.DelayFrame(1);
+			}
+		}
 	}
 }
