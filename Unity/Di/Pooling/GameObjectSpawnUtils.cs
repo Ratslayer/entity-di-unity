@@ -12,6 +12,8 @@ namespace BB
 		{
 			if (!parent)
 				parent = World.Entity;
+			if (parent._ref is null)
+				throw new Exception("Trying to create an instance with no parent and a null World");
 			if (parent._ref is not IEntityUnity eu)
 				throw new Exception(
 					$"Entity implementation does not support creating gameobject children." +

@@ -5,7 +5,7 @@ namespace BB
 	{
 		public override void Install(IDiContainer container)
 		{
-			container.InjectedInstance(GetType(), this);
+			container.Instance(GetType(), this);
 		}
 	}
 }

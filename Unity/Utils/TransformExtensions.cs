@@ -45,5 +45,7 @@ namespace BB
 			=> Vector3.Distance(t.position, t2.position);
 		public static float Distance(this Transform t, Vector3 p)
 			=> Vector3.Distance(t.position, p);
+		public static void SetY(this Transform t, float y)
+			=> t.position = t.position.SetY(y);
 	}
 }

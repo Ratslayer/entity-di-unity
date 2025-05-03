@@ -37,6 +37,10 @@ namespace BB
 				token.Cancel();
 			}
 		}
+		public static UniTask<T> WaitForEvent<T>(
+			this IEvent<T> e,
+			CancellationToken ct)
+			=> WaitForEvent(e, null, ct);
 		public static async UniTask<T> WaitForEvent<T>(
 			this IEvent<T> e,
 			Predicate<T> predicate,
@@ -72,10 +76,14 @@ namespace BB
 			e.Subscribe(OnEventRaised);
 			while (true)
 			{
-				var source = CancellationTokenSource.CreateLinkedTokenSource(
-					timeoutSource.Token,
-					e.NextEventCancellationToken,
-					externalCancelationToken);
+				var source = timeoutSource is null
+					? CancellationTokenSource.CreateLinkedTokenSource(
+						e.NextEventCancellationToken,
+						externalCancelationToken)
+					: CancellationTokenSource.CreateLinkedTokenSource(
+						timeoutSource.Token,
+						e.NextEventCancellationToken,
+						externalCancelationToken);
 				await UniTask.Never(source.Token).SuppressCancellationThrow();
 
 				if (externalCancelationToken.IsCancellationRequested)
