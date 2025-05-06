@@ -13,13 +13,14 @@ namespace BB.Di
 			{
 				if (_entity == null)
 				{
-					var installer
+					var editorWorld
 						= AssetDatabase.LoadAssetAtPath
-						<BaseInstallerAsset>(InstallerPath);
+						<InstallerAsset>(InstallerPath);
+
 					var impl = EntityImpl.CreateEntity(
 						"Editor",
 						null,
-						installer.Install,
+						editorWorld.Install,
 						null,
 						true);
 					_entity = impl;
