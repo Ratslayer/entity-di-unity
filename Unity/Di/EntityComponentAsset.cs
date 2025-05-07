@@ -12,6 +12,6 @@ namespace BB
 	public abstract class EntityComponentAsset : BaseScriptableObject
 	{
 		public string Name => name;
-		public abstract void Apply(Entity parent);
+		public abstract void Apply(Entity target);
 	}
 }
