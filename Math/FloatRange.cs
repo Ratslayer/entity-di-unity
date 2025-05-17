@@ -31,5 +31,7 @@ namespace BB
 
 		public static implicit operator FloatRange(float minMax)
 			=> new(minMax, minMax);
+		public static implicit operator FloatRange((float min, float max) v)
+			=> new(v.min, v.max);
 	}
 }

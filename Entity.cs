@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using BB.Di;
 namespace BB
 {
 	public readonly partial struct Entity

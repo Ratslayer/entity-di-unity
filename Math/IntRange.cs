@@ -29,5 +29,7 @@ namespace BB
 
 		public static implicit operator IntRange(int minMax)
 			=> new(minMax, minMax);
+		public static implicit operator IntRange((int min, int max) v)
+			=> new(v.min, v.max);
 	}
 }

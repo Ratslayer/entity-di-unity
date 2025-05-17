@@ -5,7 +5,7 @@ namespace BB.Di
 {
 	public interface IEntityUnity
 	{
-		IEntity CreateChild(GameObject prefab, bool usePooling);
+		IEntity SpawnChildGameObjectEntity(GameObject prefab, bool usePooling);
 	}
 	public partial class EntityImpl : IEntityUnity
 	{
@@ -44,7 +44,7 @@ namespace BB.Di
 		{
 			_childUnityPools?.Clear();
 		}
-		public IEntity CreateChild(GameObject prefab, bool usePooling)
+		public IEntity SpawnChildGameObjectEntity(GameObject prefab, bool usePooling)
 		{
 			if (!usePooling)
 				return CreateGameObjectEntity(prefab, null, this, null, true);

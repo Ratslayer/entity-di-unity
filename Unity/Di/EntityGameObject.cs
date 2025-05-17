@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 namespace BB.Di
 {
 	public sealed class EntityGameObject
 		: BaseBehaviour,
 		IEntityBehaviour,
 		IEntityInstaller,
-		IDespawnable,
-		IDisposable
+		IDespawnable
 	{
 		public Entity Entity => _entity is null ? default : _entity.GetToken();
 		[Inject]
@@ -32,14 +30,9 @@ namespace BB.Di
 		}
 		public readonly List<EntityGameObject> _children = new();
 		public EntityGameObject Parent { get; set; }
-		public void Dispose()
-		{
-			if (gameObject)
-				Destroy(gameObject);
-		}
 		private void OnDestroy()
 		{
-			Entity._ref.State = EntityState.Disposed;
+			Entity._ref.State = EntityState.Destroyed;
 		}
 	}
 }

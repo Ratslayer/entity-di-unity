@@ -18,8 +18,14 @@ namespace BB
 				throw new Exception(
 					$"Entity implementation does not support creating gameobject children." +
 					$"Check that you're using the original {nameof(EntityImpl)} class.");
-			var entity = eu.CreateChild(prefab, true);
-			args.Apply(entity.Require<Root>());
+
+			var entity = eu.SpawnChildGameObjectEntity(prefab, true);
+
+			var root = entity.Require<Root>();
+			//reset to prefab scale in case it has been changed
+			root.Transform.localScale = prefab.transform.localScale;
+			args.Apply(root);
+
 			entity.State = EntityState.Enabled;
 			return entity.GetToken();
 		}

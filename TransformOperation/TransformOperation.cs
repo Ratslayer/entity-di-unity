@@ -4,10 +4,10 @@ namespace BB
 {
 	public readonly struct TransformOperation
 	{
-		readonly Transform _parent;
-		readonly Vector3 _position, _scale;
-		readonly Quaternion _rotation;
-		readonly TransformArgsUsage _usage;
+		public readonly Transform _parent;
+		public readonly Vector3 _position, _scale;
+		public readonly Quaternion _rotation;
+		public readonly TransformArgsUsage _usage;
 
 		#region Apply
 		public void Apply(Transform transform)

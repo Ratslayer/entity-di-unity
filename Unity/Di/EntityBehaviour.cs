@@ -50,7 +50,7 @@ namespace BB.Di
 				var go = EntityGameObjectUtils.GetRootEntityGameObject(this);
 				if (World.EntityRef is not IEntityUnity eu)
 					return;
-				var entity = eu.CreateChild(go, false);
+				var entity = eu.SpawnChildGameObjectEntity(go, false);
 				entity.State = EntityState.Enabled;
 			}
 		}
