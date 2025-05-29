@@ -15,6 +15,7 @@ namespace BB.Di
 		public void Install(IDiContainer container)
 		{
 			container.System<Root>(transform);
+			container.BindStateMachine();
 			container.Instance(this).Inject().BindEvents();
 			var installers = GetComponents<IEntityInstaller>();
 			foreach (var installer in installers)
