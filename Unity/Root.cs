@@ -11,8 +11,7 @@ public sealed record Root(Transform Transform)
 	{
 		Transform.gameObject.SetActive(false);
 	}
-	public static implicit operator Vector3(Root root) 
-		=> root.Transform.position;
+
 	public float Scale
 	{
 		get => Transform.localScale.x;
@@ -38,7 +37,12 @@ public sealed record Root(Transform Transform)
 		get => Position.y;
 		set => Position = Position.SetY(value);
 	}
-	public static implicit operator Transform(Root root) => root?.Transform;
+	public static implicit operator Vector3(Root root)
+		=> root.Transform.position;
+	public static implicit operator Transform(Root root)
+		=> root?.Transform;
+	public static implicit operator Quaternion(Root root)
+		=> root.Rotation;
 }
 public static class RootExtensions
 {
