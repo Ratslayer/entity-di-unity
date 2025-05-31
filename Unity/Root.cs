@@ -42,6 +42,12 @@ public sealed record Root(Transform Transform)
 }
 public static class RootExtensions
 {
-	public static float Distance(this Root root, Vector3 point)
+	public static float DistanceTo(this Root root, Vector3 point)
 		=> Vector3.Distance(root.Position, point);
+	public static Vector3 VectorTo(this Root root, Vector3 point)
+		=> point - root;
+	public static Vector3 FlatVectorTo(this Root root, Vector3 point)
+		=> root.VectorTo(point).SetY(0);
+	public static Vector3 FlatDirTo(this Root root, Vector3 point)
+		=> root.FlatVectorTo(point).normalized;
 }
