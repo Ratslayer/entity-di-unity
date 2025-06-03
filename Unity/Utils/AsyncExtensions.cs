@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using DG.Tweening;
 namespace BB
 {
 	public static class AsyncExtensions
@@ -108,5 +109,7 @@ namespace BB
 				await UniTask.DelayFrame(1);
 			}
 		}
+		public static UniTask ToUniTask(this Tween tween, CancellationToken ct)
+			=> tween.ToUniTask(TweenCancelBehaviour.KillAndCancelAwait, ct);
 	}
 }

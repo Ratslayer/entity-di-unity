@@ -8,10 +8,10 @@ namespace BB
 			container.Instance(GetType(), this);
 		}
 
-		public override void Apply(Entity target, IStateMachine machine)
+		public override void Apply(Entity target, IStateData data)
 		{
 			var entity = this.Spawn(target);
-			machine?.AddStateEntity(entity);
+			data?.AddEntity(entity);
 		}
 	}
 }

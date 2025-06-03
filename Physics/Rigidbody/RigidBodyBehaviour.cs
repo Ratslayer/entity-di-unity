@@ -12,9 +12,7 @@ namespace BB
 		public override void Install(IDiContainer container)
 		{
 			base.Install(container);
-			container.Instance(GetComponent<Rigidbody>());
-			container.Event<CollisionEnterEvent>();
-			container.Event<CollisionExitEvent>();
+			container.BindCollision(GetComponent<Rigidbody>());
 		}
 		private void OnCollisionEnter(Collision collision)
 		{

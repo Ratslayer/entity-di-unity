@@ -3,12 +3,12 @@ namespace BB
 {
 	public abstract class AttachedEntityComponentAsset : EntityComponentAsset, IEntityInstaller
 	{
-		public override void Apply(Entity target, IStateMachine machine)
+		public override void Apply(Entity target, IStateData data)
 		{
 			var entity = this.SpawnAndAttachTo(target);
-			if (machine is not null)
+			if (data is not null)
 				Log.Info($"State {name} added {entity} to {target}");
-			machine?.AddStateEntity(entity);
+			data?.AddEntity(entity);
 		}
 
 		public virtual void Install(IDiContainer container)

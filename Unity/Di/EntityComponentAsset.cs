@@ -15,20 +15,20 @@ namespace BB
 		public void ApplyOnSpawn(Entity entity)
 			=> Apply(entity, null);
 
-		public void EnterState(IStateMachine machine)
+		public void EnterState(IStateData data)
 		{
-			Apply(machine.Entity, machine);
+			Apply(data.Entity, data);
 		}
 
-		public void ExitState(IStateMachine machine)
+		public void ExitState(IStateData data)
 		{
-			Unapply(machine.Entity, machine);
+			Unapply(data.Entity, data);
 		}
 
-		public virtual void Apply(Entity target, IStateMachine machine)
+		public virtual void Apply(Entity target, IStateData data)
 		{
 		}
-		public virtual void Unapply(Entity target, IStateMachine machine)
+		public virtual void Unapply(Entity target, IStateData data)
 		{
 		}
 	}
