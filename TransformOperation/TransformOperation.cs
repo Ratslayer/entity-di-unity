@@ -101,10 +101,17 @@ namespace BB
 		{
 
 		}
+		public TransformOperation(Vector3 pos, float scale, Transform parent = null)
+			: this(pos, default, Vector3.one * scale, parent, Position | Parent | Scale)
+		{
+		}
+		public TransformOperation(Vector3 pos, Quaternion rot, float scale, Transform parent = null)
+			: this(pos, rot, Vector3.one * scale, parent, Position | Rotation | Parent | Scale)
+		{
+		}
 		public TransformOperation(Vector3 pos, Quaternion rot, Vector3 scale, Transform parent = null)
 			: this(pos, rot, scale, parent, Position | Rotation | Parent | Scale)
 		{
-
 		}
 		public TransformOperation(Vector3 pos, Transform parent = null)
 			: this(pos, Quaternion.identity, default, parent, Position | Rotation | Parent) { }

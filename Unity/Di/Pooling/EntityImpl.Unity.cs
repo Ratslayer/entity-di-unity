@@ -40,9 +40,16 @@ namespace BB.Di
 			public void Remove(IEntity entity) => _entities.Remove(entity as EntityImpl);
 		}
 		Dictionary<GameObject, UnityPool> _childUnityPools;
-		partial void DisposeUnity()
+		GameObject _gameObject;
+		partial void UnityDestroy()
 		{
 			_childUnityPools?.Clear();
+		}
+		partial void UnityDespawn()
+		{
+			foreach (var ego in _gameObject.GetComponentsInChildren<EntityGameObject>(true))
+				if (ego.gameObject != _gameObject)
+					ego.Despawn();
 		}
 		public IEntity SpawnChildGameObjectEntity(GameObject prefab, bool usePooling)
 		{
@@ -63,8 +70,8 @@ namespace BB.Di
 				instance.name = $"{prefab.name} {++pool.NumCreatedItems}";
 				prefab.SetActive(true);
 				entity = CreateGameObjectEntity(instance, null, this, pool, true);
-				_children ??= new();
-				_children.Add(entity);
+				//_children ??= new();
+				//_children.Add(entity);
 				var ego = entity.Require<EntityGameObject>();
 
 				ego._pool = pool;
@@ -95,6 +102,8 @@ namespace BB.Di
 				ego.Install,
 				pool,
 				isRoot);
+
+			entity._gameObject = go;
 			CreateChildEntities(ego.transform, ego, entity);
 			return entity;
 		}

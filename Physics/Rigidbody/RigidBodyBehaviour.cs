@@ -2,6 +2,29 @@
 using UnityEngine;
 namespace BB
 {
+	public interface IVelocityController
+	{
+		public Vector3 Velocity { get; set; }
+		public Vector3 AngularVelocity { get; set; }
+	}
+	public sealed record RigidBodyVelocityController(Rigidbody Rb) : IVelocityController
+	{
+		public Vector3 Velocity
+		{
+			get => Rb.linearVelocity;
+			set
+			{
+				var diff = value - Rb.linearVelocity;
+				Rb.AddForce(diff, ForceMode.VelocityChange);
+			}
+		}
+
+		public Vector3 AngularVelocity
+		{
+			get => Rb.angularVelocity;
+			set => Rb.angularVelocity = value;
+		}
+	}
 	[RequireComponent(typeof(Rigidbody))]
 	public sealed class RigidBodyBehaviour : EntityBehaviour
 	{
@@ -13,6 +36,7 @@ namespace BB
 		{
 			base.Install(container);
 			container.BindCollision(GetComponent<Rigidbody>());
+			container.System<IVelocityController, RigidBodyVelocityController>();
 		}
 		private void OnCollisionEnter(Collision collision)
 		{

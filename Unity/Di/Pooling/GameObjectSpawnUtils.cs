@@ -7,7 +7,7 @@ namespace BB
 	{
 		public static Entity SpawnEntity(
 			this GameObject prefab,
-			TransformOperation args,
+			in TransformOperation args,
 			Entity parent = default)
 		{
 			if (!parent)

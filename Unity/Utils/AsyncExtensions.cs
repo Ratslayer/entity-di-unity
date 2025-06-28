@@ -100,13 +100,13 @@ namespace BB
 				}
 			}
 		}
-		public static async UniTask WaitForDespawn(this Entity entity)
+		public static async UniTask WaitForDespawn(this Entity entity, CancellationToken ct)
 		{
 			while (true)
 			{
 				if (!entity)
 					return;
-				await UniTask.DelayFrame(1);
+				await UniTask.DelayFrame(1, cancellationToken: ct);
 			}
 		}
 		public static UniTask ToUniTask(this Tween tween, CancellationToken ct)

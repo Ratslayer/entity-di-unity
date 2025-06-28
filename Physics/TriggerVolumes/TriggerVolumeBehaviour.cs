@@ -17,25 +17,9 @@ namespace BB
 			container.Event<TriggerVolumeExitEvent>();
 		}
 		private void OnTriggerEnter(Collider other)
-		{
-			var entity = other.GetEntity();
-			if (!entity || _enteredEntities.Contains(entity))
-				return;
-
-			_enteredEntities.Add(entity);
-			if (enabled)
-				_entered.Publish(new(entity));
-		}
+			=> Enter(other);
 		private void OnTriggerExit(Collider other)
-		{
-			var entity = other.GetEntity();
-			if (!entity|| !_enteredEntities.Contains(entity))
-				return;
-
-			_enteredEntities.Remove(entity);
-			if(enabled)
-				_exited.Publish(new(entity));
-		}
+			=> Exit(other);
 		[OnEnable]
 		void OnEnableEvent()
 		{
@@ -46,6 +30,26 @@ namespace BB
 		void OnDisableEvent()
 		{
 			foreach (var entity in _enteredEntities)
+				_exited.Publish(new(entity));
+		}
+		public void Enter(Collider collider)
+		{
+			var entity = collider.GetEntity();
+			if (!entity || _enteredEntities.Contains(entity))
+				return;
+
+			_enteredEntities.Add(entity);
+			if (enabled)
+				_entered.Publish(new(entity));
+		}
+		public void Exit(Collider collider)
+		{
+			var entity = collider.GetEntity();
+			if (!entity || !_enteredEntities.Contains(entity))
+				return;
+
+			_enteredEntities.Remove(entity);
+			if (enabled)
 				_exited.Publish(new(entity));
 		}
 	}

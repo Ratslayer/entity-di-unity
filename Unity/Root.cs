@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 public sealed record Root(Transform Transform)
 {
+	#region Events
 	[OnEnable]
 	void OnEnable()
 	{
@@ -11,7 +12,7 @@ public sealed record Root(Transform Transform)
 	{
 		Transform.gameObject.SetActive(false);
 	}
-
+	#endregion
 	public float Scale
 	{
 		get => Transform.localScale.x;
