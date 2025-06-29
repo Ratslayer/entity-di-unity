@@ -119,9 +119,16 @@ namespace BB
 			: this(Vector3.zero, parent) { }
 		#endregion
 
+		#region Operators
 		public static TransformOperation ParentReset(Transform parent)
 			=> new(parent.position, parent.rotation, parent);
 		public static implicit operator TransformOperation(Transform parent) => new(parent);
 		public static implicit operator TransformOperation(Vector3 position) => new(position);
+		#endregion
+
+		#region Modifiers
+		public TransformOperation WithPos(Vector3 pos)
+			=> new(pos, _rotation, _scale, _parent, _usage | Position);
+		#endregion
 	}
 }
