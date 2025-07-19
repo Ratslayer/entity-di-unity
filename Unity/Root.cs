@@ -18,6 +18,11 @@ public sealed record Root(Transform Transform)
 		get => Transform.localScale.x;
 		set => Transform.localScale = Vector3.one * value;
 	}
+	public Vector3 NonUniformScale
+	{
+		get => Transform.localScale;
+		set => Transform.localScale = value;
+	}
 	public Vector3 Position
 	{
 		get => Transform.position;
@@ -38,6 +43,8 @@ public sealed record Root(Transform Transform)
 		get => Position.y;
 		set => Position = Position.SetY(value);
 	}
+	public Vector3 Forward => Transform.forward;
+	public Vector3 ForwardFlat => Forward.Flat();
 	public static implicit operator Vector3(Root root)
 		=> root.Transform.position;
 	public static implicit operator Transform(Root root)
@@ -55,4 +62,7 @@ public static class RootExtensions
 		=> root.VectorTo(point).SetY(0);
 	public static Vector3 FlatDirTo(this Root root, Vector3 point)
 		=> root.FlatVectorTo(point).normalized;
+
+	public static float AngleToForward(this Root root, Vector3 dir)
+		=> Vector3.SignedAngle(root.Transform.forward, dir, Vector3.up);
 }
