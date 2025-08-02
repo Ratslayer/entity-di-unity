@@ -79,7 +79,7 @@ namespace BB.Di
 				InvokeCreate(ego);
 				static void InvokeCreate(EntityGameObject ego)
 				{
-					((EntityImpl)ego.Entity._ref).RaiseCreateEvent();
+					((EntityImpl)ego.Entity._ref).PublishCreateEvent();
 					foreach (var child in ego._children)
 						InvokeCreate(child);
 				}
