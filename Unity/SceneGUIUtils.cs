@@ -340,13 +340,31 @@ namespace BB
 		public static void DrawAABB(Color color, Vector2 p1, Vector2 p2)
 		{
 			var points = new Vector3[]
-				{
+			{
 				p1,
 				new Vector2(p1.x,p2.y),
 				p2,
 				new Vector2(p2.x,p1.y)
-				};
+			};
 			DrawBox(Color.clear, color, points);
+		}
+		public static void DrawWorldPoint(Color color, Vector3 position, float size, Action onClick)
+		{
+			Vector2 screenPos = HandleUtility.WorldToGUIPoint(position);
+
+			Color originalColor = Handles.color;
+
+			// Draw button background
+			Handles.color = color;
+			if (DrawClickablePoint(position, size, true))
+				//Handles.Button(
+				//position, 
+				//Quaternion.identity, 
+				//size * 0.2f, 
+				//size * 0.2f, 
+				//Handles.SphereHandleCap))
+				onClick();
+			Handles.color = originalColor;
 		}
 		private static T ApplyColor<T>(Color color, Func<T> func)
 		{
@@ -363,7 +381,8 @@ namespace BB
 			a();
 			Handles.color = c;
 		}
-		private static void DrawHandle(Color color, Vector3 pos, Quaternion rot, float size, bool constantSize, Handles.CapFunction method) => ApplyColor(color, () => method(0, pos, rot, GetSize(pos, size, constantSize), EventType.Repaint));
+		private static void DrawHandle(Color color, Vector3 pos, Quaternion rot, float size, bool constantSize, Handles.CapFunction method)
+			=> ApplyColor(color, () => method(0, pos, rot, GetSize(pos, size, constantSize), EventType.Repaint));
 		public enum TransformType
 		{
 			Translate = 1,
@@ -536,7 +555,7 @@ namespace BB
 		{
 			Handles.DrawWireDisc(pos, normal, GetSize(pos, radius, constantSize));
 		}
-		
+
 		public static void DrawDot(Color color, Vector3 pos, float size, bool constantSize) => DrawHandle(color, pos, Quaternion.identity, size, constantSize, Handles.DotHandleCap);
 		public static void DrawAABB(Color color, Vector2 p1, Vector2 p2, Vector2 center)
 		{
@@ -544,7 +563,7 @@ namespace BB
 		}
 		public static bool DrawClickablePoint(Vector3 position, float size, bool constantSize)
 		{
-			return DrawHandlesButton(position, Quaternion.identity, size, Handles.DotHandleCap, constantSize);
+			return DrawHandlesButton(position, Quaternion.identity, size, Handles.SphereHandleCap, constantSize);
 		}
 		//public static void DrawSelectablePoint(Color color, Color selectedColor, Vector3 position, float size, bool constantSize, Condition isSelected, Action onSelect, Action selectedUpdate)
 		//{

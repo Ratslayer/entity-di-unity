@@ -16,6 +16,14 @@ namespace BB
 				return new();
 			}
 		}
+		public static VerticalLayout Vertical
+		{
+			get
+			{
+				EditorGUILayout.BeginVertical();
+				return new();
+			}
+		}
 		public static GuiHorizontalLayout HorizontalBox(string name)
 		{
 			GUILayout.BeginHorizontal(name, "window");

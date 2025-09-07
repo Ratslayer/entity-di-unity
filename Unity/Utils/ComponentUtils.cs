@@ -12,22 +12,18 @@ public static class ComponentUtils
 		result = component.GetComponentInChildren<T>();
 		return result is not null;
 	}
-	//public static bool HasEntity(this GameObject go, out EntityOld entity)
-	//{
-	//	var entityBehaviour = go.GetComponentInParent<EntityBehaviourOld>();
-	//	if (entityBehaviour)
-	//	{
-	//		entity = entityBehaviour.Entity;
-	//		return true;
-	//	}
-	//	entity = default;
-	//	return false;
-	//}
-	//public static bool HasEntityOld(this Component component, out EntityOld entity)
-	//{
-	//	if (component && component.gameObject.HasEntity(out entity))
-	//		return true;
-	//	entity = default;
-	//	return false;
-	//}
+	public static bool IsComponentOrGameObject<T>(this Object obj, out T component)
+		where T : Component
+	{
+		if (obj is T comp)
+		{
+			component = comp;
+			return true;
+		}
+		if (obj is GameObject go)
+			return go.TryGetComponent(out component);
+
+		component = null;
+		return false;
+	}
 }
