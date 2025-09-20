@@ -9,7 +9,7 @@ namespace BB
 			container.Instance(GetType(), this);
 		}
 	}
-	public abstract class EntityComponentAsset : BaseScriptableObject, IStateOnEnter, IStateOnExit
+	public abstract class EntityComponentAsset : BaseScriptableObject, IEntityStateOnEnter, IEntityStateOnExit
 	{
 		public string Name => name;
 		public void ApplyOnSpawn(Entity entity)
