@@ -34,6 +34,13 @@ namespace BB
 			if (resetScale)
 				t.localScale = Vector3.one;
 		}
+		public static void CopyData(this Transform t, Transform target)
+		{
+			if (!target)
+				return;
+			t.SetPositionAndRotation(target.position, target.rotation);
+			t.localScale = target.localScale;
+		}
 		public static IEnumerable<Transform> GetChildren(this Transform t)
 		{
 			for (var i = t.childCount - 1; i >= 0; i--)
