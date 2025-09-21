@@ -9,7 +9,7 @@ namespace BB
 			if (this.TryGetComponentInParent(out _root))
 				return;
 			enabled = false;
-			Log.Error($"{name} does not have {nameof(TriggerVolumeReceiver)}");
+			Log.Error($"{name} does not have {nameof(TriggerVolumeBehaviour)}");
 		}
 		private void OnTriggerEnter(Collider other)
 			=> _root.Enter(other);
