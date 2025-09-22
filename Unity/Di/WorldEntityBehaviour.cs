@@ -19,7 +19,6 @@ namespace BB
 		void Install(IDiContainer container)
 		{
 			container.Event<GameLoadedFromScene>();
-			//container.System<GameObjectPoolParents>(gameObject);
 			_installer.Install(container);
 		}
 	}
