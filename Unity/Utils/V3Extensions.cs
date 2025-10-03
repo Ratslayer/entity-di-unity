@@ -18,6 +18,8 @@ public static class V3Extensions
         var result = Vector3.Dot(point - origin, direction) * direction + origin;
         return result;
     }
+    public static Quaternion ToForwardRotation(this Vector3 dir)
+        => Quaternion.LookRotation(dir);
     public static void Break(this Vector3 v, out Vector3 dir, out float magnitude)
     {
         magnitude = v.magnitude;

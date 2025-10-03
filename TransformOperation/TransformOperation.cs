@@ -106,6 +106,9 @@ namespace BB
 
         public TransformOperation WithPos(Vector3 pos)
             => new(pos, _rotation, _scale, _parent, _usage | Position);
+
+        public TransformOperation WithParent(Transform t)
+            => new(_position, _rotation, _scale, t, _usage | Parent);
         #endregion
     }
 }
