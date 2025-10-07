@@ -1,13 +1,70 @@
 ﻿using UnityEngine;
-using static TransformArgsUsage;
 namespace BB
 {
     public readonly struct TransformOperation
     {
         public readonly Transform _parent;
-        public readonly Vector3 _position, _scale;
+        public readonly Vector3 _position;
+        public readonly Vector3 _scale;
         public readonly Quaternion _rotation;
-        public readonly TransformArgsUsage _usage;
+        public readonly TransformOperationUsage _usage;
+        #region Properties
+        public Transform Parent
+        {
+            init
+            {
+                _parent = value;
+                _usage |= TransformOperationUsage.Parent;
+            }
+        }
+        public Vector3 Position
+        {
+            init
+            {
+                _position = value;
+                _usage |= TransformOperationUsage.Position;
+            }
+        }
+        public RotationAdapter Rotation
+        {
+            init
+            {
+                _rotation = value._rotation;
+                _usage |= TransformOperationUsage.Rotation;
+            }
+        }
+        public ScaleAdapter Scale
+        {
+            init
+            {
+                _scale = value._scale;
+                _usage |= TransformOperationUsage.Scale;
+            }
+        }
+        public bool Local
+        {
+            init
+            {
+                if (value)
+                    _usage |= TransformOperationUsage.Local;
+            }
+        }
+        #endregion
+        #region Constructors
+        public TransformOperation(
+            Vector3 pos,
+            in RotationAdapter rot,
+            in ScaleAdapter scale,
+            Transform parent,
+            TransformOperationUsage usage)
+        {
+            _position = pos;
+            _rotation = rot;
+            _scale = scale;
+            _parent = parent;
+            _usage = usage;
+        }
+        #endregion
 
         #region Apply
         public void Apply(in TransformAdapter t)
@@ -15,36 +72,46 @@ namespace BB
             if (!t)
                 return;
             var transform = t._transform;
-            if (HasFlag(Parent))
+            if (HasFlag(TransformOperationUsage.Parent))
                 transform.SetParent(_parent, true);
-            if (HasFlag(Additive))
+            if (HasFlag(TransformOperationUsage.Additive))
             {
-                if (HasFlag(Position))
+                if (HasFlag(TransformOperationUsage.Position))
                     transform.position += _position;
-                if (HasFlag(Rotation))
+                if (HasFlag(TransformOperationUsage.Rotation))
                     transform.rotation *= _rotation;
             }
-            else if (HasFlag(Local))
+            else if (HasFlag(TransformOperationUsage.Local))
             {
-                if (HasFlag(Position))
+                if (HasFlag(TransformOperationUsage.Position))
                     transform.localPosition = _position;
-                if (HasFlag(Rotation))
+                if (HasFlag(TransformOperationUsage.Rotation))
                     transform.localRotation = _rotation;
             }
             else
             {
-                if (HasFlag(Position))
+                if (HasFlag(TransformOperationUsage.Position))
                     transform.position = _position;
-                if (HasFlag(Rotation))
+                if (HasFlag(TransformOperationUsage.Rotation))
                     transform.rotation = _rotation;
             }
-            if (HasFlag(Scale))
+            if (HasFlag(TransformOperationUsage.Scale))
                 transform.localScale = _scale;
-            if (HasFlag(Reset2D) && transform.TryGetComponent(out RectTransform rect))
-            {
-                rect.anchoredPosition = default;
-                rect.sizeDelta = default;
-            }
+
+            //var reset2D = HasFlag(TransformOperationUsage.Reset2D);
+            //var sizeDelta = HasFlag(TransformOperationUsage.SizeDelta);
+            //if ((reset2D || sizeDelta) && transform.TryGetComponent(out RectTransform rect))
+            //{
+            //    if (reset2D)
+            //    {
+            //        rect.anchoredPosition = default;
+            //        rect.sizeDelta = default;
+            //    }
+            //    if (sizeDelta)
+            //    {
+            //        rect.sizeDelta = _sizeDelta;
+            //    }
+            //}
         }
         public ApplyTransformOperationDisposable ApplyTemp(in TransformAdapter transform)
         {
@@ -54,44 +121,50 @@ namespace BB
             Apply(transform);
             return new(undoOperation, transform._transform);
         }
-        bool HasFlag(TransformArgsUsage usage)
+        bool HasFlag(TransformOperationUsage usage)
             => _usage.HasFlag(usage);
         #endregion
+        //#region Constructors
+        //public TransformOperation(Transform parent, Vector2 sizeDelta)
+        //{
+        //    _parent = parent;
+        //    _sizeDelta = sizeDelta;
+        //    _
+        //}
+        //public TransformOperation(Vector3 pos, RotationAdapter rot, ScaleAdapter scale, Transform parent, TransformArgsUsage usage)
+        //{
+        //    _parent = parent;
+        //    _position = pos;
+        //    _rotation = rot._rotation;
+        //    _scale = scale;
+        //    _usage = usage;
+        //    _sizeDelta = default;
+        //}
+        //public TransformOperation(Vector3 pos, RotationAdapter rot, Transform parent = null)
+        //    : this(pos, rot, default, parent, Position | Rotation | Parent)
+        //{
 
-        #region Constructors
-        public TransformOperation(Vector3 pos, RotationAdapter rot, ScaleAdapter scale, Transform parent, TransformArgsUsage usage)
-        {
-            _parent = parent;
-            _position = pos;
-            _rotation = rot._rotation;
-            _scale = scale;
-            _usage = usage;
-        }
-        public TransformOperation(Vector3 pos, RotationAdapter rot, Transform parent = null)
-            : this(pos, rot, default, parent, Position | Rotation | Parent)
-        {
+        //}
+        //public TransformOperation(Vector3 pos, float scale, Transform parent = null)
+        //    : this(pos, default, Vector3.one * scale, parent, Position | Parent | Scale)
+        //{
+        //}
+        //public TransformOperation(Vector3 pos, RotationAdapter rot, ScaleAdapter scale, Transform parent = null)
+        //    : this(pos, rot, scale, parent, Position | Rotation | Parent | Scale)
+        //{
+        //}
+        //public TransformOperation(Vector3 pos, Transform parent = null)
+        //    : this(pos, Quaternion.identity, default, parent, Position | Rotation | Parent) { }
+        //public TransformOperation(Transform parent)
+        //    : this(Vector3.zero, parent) { }
+        //#endregion
 
-        }
-        public TransformOperation(Vector3 pos, float scale, Transform parent = null)
-            : this(pos, default, Vector3.one * scale, parent, Position | Parent | Scale)
-        {
-        }
-        public TransformOperation(Vector3 pos, RotationAdapter rot, ScaleAdapter scale, Transform parent = null)
-            : this(pos, rot, scale, parent, Position | Rotation | Parent | Scale)
-        {
-        }
-        public TransformOperation(Vector3 pos, Transform parent = null)
-            : this(pos, Quaternion.identity, default, parent, Position | Rotation | Parent) { }
-        public TransformOperation(Transform parent)
-            : this(Vector3.zero, parent) { }
-        #endregion
-
-        #region Operators
-        public static TransformOperation ParentReset(Transform parent)
-            => new(parent.position, parent.rotation, parent);
-        public static implicit operator TransformOperation(Transform parent) => new(parent);
-        public static implicit operator TransformOperation(Vector3 position) => new(position);
-        #endregion
+        //#region Operators
+        //public static TransformOperation ParentReset(Transform parent)
+        //    => new(parent.position, parent.rotation, parent);
+        //public static implicit operator TransformOperation(Transform parent) => new(parent);
+        //public static implicit operator TransformOperation(Vector3 position) => new(position);
+        //#endregion
 
         #region Methods
         public TransformOperation Add(Vector3 pos, RotationAdapter rot, ScaleAdapter scale)
@@ -103,12 +176,6 @@ namespace BB
                 _parent,
                 _usage);
         }
-
-        public TransformOperation WithPos(Vector3 pos)
-            => new(pos, _rotation, _scale, _parent, _usage | Position);
-
-        public TransformOperation WithParent(Transform t)
-            => new(_position, _rotation, _scale, t, _usage | Parent);
         #endregion
     }
 }

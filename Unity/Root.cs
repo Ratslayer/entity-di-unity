@@ -44,6 +44,11 @@ public sealed record Root(Transform Transform)
 		set => Position = Position.SetY(value);
 	}
 	public Vector3 Forward => Transform.forward;
+	public Transform Parent
+	{
+		get => Transform.parent;
+		set => Transform.SetParent(value);
+	}
 	public Vector3 ForwardFlat => Forward.Flat();
 	public static implicit operator Vector3(Root root)
 		=> root.Transform.position;
