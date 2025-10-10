@@ -50,6 +50,15 @@ namespace BB
                 _usage |= TransformOperation2DUsage.AnchoredPosition;
             }
         }
+        public bool StretchToFull
+        {
+            init
+            {
+                Anchors = AnchorSides.All;
+                SizeDelta = Vector2.zero;
+                AnchoredPosition = Vector2.zero;
+            }
+        }
         public void Apply(in TransformAdapter ta)
         {
             if (!ta._transform.TryGetComponent(out RectTransform rt))
