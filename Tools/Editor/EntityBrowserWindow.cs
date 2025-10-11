@@ -1,0 +1,207 @@
+﻿using BB.Di;
+using Sirenix.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
+
+namespace BB
+{
+    public sealed class EntityBrowserWindow : EditorWindow
+    {
+        const int MaxNumEntries = 10;
+        [MenuItem("Tools/Entity Browser")]
+        public static void ShowWindow()
+        {
+            GetWindow<EntityBrowserWindow>("Entity Browser");
+        }
+
+        readonly List<Entity> _entities = new();
+        readonly List<EntityEntry> _entries = new();
+        string _searchValue;
+
+        private void OnGUI()
+        {
+            using (var _ = LayoutUtils.Horizontal)
+            {
+                EditorGuiUtils.Button("Update", UpdateEntities);
+                EditorGuiUtils.Button("Clear", ClearEntities);
+            }
+
+            EditorGuiUtils.TextField("Search", ref _searchValue, UpdatedSearchedEntries);
+
+            DrawEntries();
+        }
+        void UpdateEntities()
+        {
+            _entities.Clear();
+            var entitiesQueue = new List<IEntity>()
+            {
+                Application.isPlaying ? World.RootEntity : EditorWorld.Entity
+            };
+
+            while (entitiesQueue.Count > 0)
+            {
+                var entityRef = entitiesQueue.RemoveLast();
+                if (entityRef.State is EntityState.Despawned or EntityState.Disabled)
+                    continue;
+
+                _entities.Add(entityRef.GetToken());
+                if (entityRef is IEntityDetails details)
+                    entitiesQueue.AddRange(details.GetChildren());
+            }
+
+            UpdatedSearchedEntries();
+        }
+        void ClearEntities()
+        {
+            _entities.Clear();
+            UpdatedSearchedEntries();
+        }
+        void UpdatedSearchedEntries()
+        {
+            _entries.Clear();
+
+            var searchData = new SearchData();
+            if (!string.IsNullOrWhiteSpace(_searchValue))
+            {
+                var strs = _searchValue.Split();
+                foreach (var str in strs)
+                {
+                    var pair = str.Split(':');
+                    switch (pair.Length)
+                    {
+                        case 1:
+                            if (!string.IsNullOrWhiteSpace(pair[0]))
+                                searchData._entityNames.Add(pair[0]);
+                            break;
+                        case 2:
+                            switch (pair[0])
+                            {
+                                case "c":
+                                    searchData._componentName = pair[1];
+                                    break;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            foreach (var entity in _entities)
+            {
+                if (!entity)
+                    continue;
+
+                var er = entity._ref;
+                var nameWords = er.Name.Split();
+                if (searchData._entityNames.Count > nameWords.Length)
+                    continue;
+
+                var allMatches = true;
+                for (var i = 0; i < searchData._entityNames.Count; i++)
+                    if (!Matches(nameWords[i], searchData._entityNames[i]))
+                    {
+                        allMatches = false;
+                        break;
+                    }
+
+                if (!allMatches)
+                    continue;
+
+                if (er is not IEntityDetails details)
+                    continue;
+                var entry = new EntityEntry
+                {
+                    Entity = entity
+                };
+
+                foreach (var (type, elem) in details.GetElements())
+                {
+                    if (!Matches(type.Name, searchData._componentName))
+                        continue;
+                    entry._components.Add(elem);
+                }
+
+                if (entry._components.Count > 0)
+                    _entries.Add(entry);
+            }
+
+            static bool Matches(string str, SearchValue search)
+            {
+                if (string.IsNullOrWhiteSpace(search?._name))
+                    return true;
+
+                var capitalizedWords = StringExtensions.SplitByCapitalWords(str);
+                if (capitalizedWords.Length < search._capitalizedWords.Length)
+                    return false;
+
+                for (int i = 0; i < search._capitalizedWords.Length; i++)
+                    if (!capitalizedWords[i].StartsWith(
+                        search._capitalizedWords[i],
+                        StringComparison.InvariantCultureIgnoreCase))
+                        return false;
+
+                return true;
+            }
+        }
+        void DrawEntries()
+        {
+            var numEntries = Mathf.Min(_entries.Count, MaxNumEntries);
+            foreach (var i in numEntries)
+            {
+                var entry = _entries[i];
+                if (entry._components.IsNullOrEmpty())
+                {
+                    EditorGUILayout.LabelField(entry.Entity);
+                    continue;
+                }
+
+                if (!EditorGuiUtils.Foldout($"{entry.Entity} [{entry._components.Count}]", entry.Entity))
+                    continue;
+                using var _ = LayoutUtils.Indent;
+                foreach (var comp in entry._components)
+                {
+                    switch (comp)
+                    {
+                        case IStackValue stack:
+                            if (!EditorGuiUtils.Foldout(stack.CustomToString(), stack))
+                                continue;
+
+                            using (LayoutUtils.Indent)
+                            {
+                                foreach (var value in stack.GetTypelessSourceValues())
+                                    EditorGUILayout.LabelField(value.ToString());
+                            }
+                            break;
+                        default:
+                            EditorGUILayout.LabelField(comp.GetType().Name);
+                            break;
+                    }
+                }
+            }
+        }
+
+        sealed class SearchData
+        {
+            public List<SearchValue> _entityNames = new();
+            public SearchValue _componentName;
+        }
+        sealed class SearchValue
+        {
+            public string _name;
+            public string[] _capitalizedWords;
+            public static implicit operator SearchValue(string str)
+                => new()
+                {
+                    _name = str,
+                    _capitalizedWords = StringExtensions.SplitByCapitalWords(str)
+                };
+        }
+        sealed class EntityEntry
+        {
+            public Entity Entity { get; init; }
+            public readonly List<object> _components = new();
+        }
+    }
+}
