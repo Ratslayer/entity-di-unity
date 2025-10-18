@@ -132,5 +132,26 @@ namespace BB
                 rt.pivot = new(pivotX, pivotY);
             }
         }
+        #region Transformers
+        public TransformOperation2D WithParent(in TransformAdapter parent)
+            => new(parent._transform,
+                _sizeDelta,
+                _anchoredPosition,
+                _sides,
+                _usage | TransformOperation2DUsage.Parent);
+        private TransformOperation2D(
+            Transform parent,
+            Vector2 sizeDelta,
+            Vector2 anchoredPosition,
+            AnchorSides sides,
+            TransformOperation2DUsage usage)
+        {
+            _usage = usage;
+            _parent = parent;
+            _sizeDelta = sizeDelta;
+            _anchoredPosition = anchoredPosition;
+            _sides = sides;
+        }
+        #endregion
     }
 }

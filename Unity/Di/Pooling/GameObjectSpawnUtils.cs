@@ -21,7 +21,7 @@ namespace BB
         public static Entity SpawnEntity(
             this GameObject prefab,
             in TransformOperation args,
-            Entity parent = default)
+            Entity? parent = null)
         {
             var entity = SpawnGameObjectEntity(prefab, parent);
 
@@ -36,7 +36,7 @@ namespace BB
         public static Entity SpawnEntity(
             this RectTransform prefab,
             in TransformOperation2D args,
-            Entity parent = default)
+            Entity? parent = null)
         {
             var entity = SpawnGameObjectEntity(prefab.gameObject, parent);
 
@@ -46,13 +46,12 @@ namespace BB
             return EnableEntity(entity);
         }
 
-        private static IEntity SpawnGameObjectEntity(GameObject prefab, Entity parent)
+        private static IEntity SpawnGameObjectEntity(GameObject prefab, Entity? parent)
         {
-            if (!parent)
-                parent = World.Entity;
-            if (parent._ref is null)
+            parent ??= World.Entity;
+            if (parent?._ref is null)
                 throw new Exception("Trying to create an instance with no parent and a null World");
-            if (parent._ref is not IEntityUnity eu)
+            if (parent?._ref is not IEntityUnity eu)
                 throw new Exception(
                     $"Entity implementation does not support creating gameobject children." +
                     $"Check that you're using the original {nameof(EntityImpl)} class.");
@@ -65,23 +64,23 @@ namespace BB
             entity.State = EntityState.Enabled;
             return entity.GetToken();
         }
-        public static GameObject SpawnInstance(this GameObject prefab, TransformOperation args, Entity parent = default)
+        public static GameObject SpawnInstance(this GameObject prefab, TransformOperation args, Entity? parent = null)
             => prefab.SpawnEntity(args, parent).Require<Root>().Transform.gameObject;
-        public static Entity SpawnEntity(this Component comp, TransformOperation args, Entity parent = default)
+        public static Entity SpawnEntity(this Component comp, TransformOperation args, Entity? parent = null)
             => SpawnEntity(comp.gameObject, args, parent);
-        public static T SpawnInstance<T>(this T prefab, TransformOperation args, Entity entity = default)
+        public static T SpawnInstance<T>(this T prefab, TransformOperation args, Entity? entity = null)
             where T : Component
             => prefab.gameObject.SpawnInstance(args, entity).GetComponent<T>();
-        public static GameObject SpawnInstance(this BasePrefabAsset asset, TransformOperation args, Entity entity = default)
+        public static GameObject SpawnInstance(this BasePrefabAsset asset, TransformOperation args, Entity? entity = null)
             => asset._prefab.SpawnInstance(args, entity);
-        public static T SpawnInstance<T>(this BasePrefabAsset<T> prefab, TransformOperation args, Entity entity = default)
+        public static T SpawnInstance<T>(this BasePrefabAsset<T> prefab, TransformOperation args, Entity? entity = null)
            where T : Component
            => prefab._prefab.SpawnInstance(args, entity);
 
-        public static T SpawnInstance2D<T>(this T prefab, TransformOperation2D args, Entity entity = default)
+        public static T SpawnInstance2D<T>(this T prefab, in TransformOperation2D args, Entity? entity = null)
             where T : EntityBehaviour2D
             => prefab.Rt.SpawnEntity(args, entity).Require<Root>().Transform.GetComponent<T>();
-        public static RectTransform SpawnInstance2D(this BasePrefabAsset2D prefab, TransformOperation2D args, Entity entity = default)
+        public static RectTransform SpawnInstance2D(this BasePrefabAsset2D prefab, TransformOperation2D args, Entity? entity = default)
             => prefab._prefab.SpawnEntity(args, entity).Require<Root>().Transform.GetComponent<RectTransform>();
 
         public static void Despawn(this GameObject go)
