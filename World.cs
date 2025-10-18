@@ -1,6 +1,4 @@
-﻿using BB.Di;
-
-namespace BB
+﻿namespace BB
 {
 	public static partial class World
 	{

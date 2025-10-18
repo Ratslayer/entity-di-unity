@@ -1,9 +1,8 @@
-﻿using BB.Di;
-using Sirenix.OdinInspector;
+﻿using Sirenix.OdinInspector;
 using UnityEngine;
 namespace BB
 {
-	public sealed class WorldEntityBehaviour : BaseBehaviour
+	public sealed class GameInstallerBehaviour : BaseBehaviour
 	{
 		[SerializeField, Required]
 		InstallerAsset _installer;
@@ -14,12 +13,8 @@ namespace BB
 				|| loaded.Value)
 				return;
 			loaded.Value = true;
-			World.PushWorld(name, Install);
-		}
-		void Install(IDiContainer container)
-		{
-			container.Event<GameLoadedFromScene>();
-			_installer.Install(container);
+			World.SetGame(_installer);
+			World.Publish<StartGameEvent>();
 		}
 	}
 	public sealed record GameLoadedFromScene : Variable<GameLoadedFromScene, bool>;
