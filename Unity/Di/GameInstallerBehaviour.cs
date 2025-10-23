@@ -1,4 +1,5 @@
-﻿using Sirenix.OdinInspector;
+﻿using Cysharp.Threading.Tasks;
+using Sirenix.OdinInspector;
 using UnityEngine;
 namespace BB
 {
@@ -14,9 +15,17 @@ namespace BB
 				return;
 			loaded.Value = true;
 			World.SetGame(_installer);
-			World.Publish<BeforeLevelSpawnEvent>();
-			World.Publish<AfterLevelSpawnEvent>();
-			World.Publish<StartGameEvent>();
+			StartGame().Forget();
+			
+			static async UniTaskVoid StartGame()
+			{
+				await UniTask.NextFrame();
+                World.Publish<BeforeLevelSpawnEvent>();
+                await UniTask.NextFrame();
+                World.Publish<AfterLevelSpawnEvent>();
+                await UniTask.NextFrame();
+                World.Publish<TryStartGameEvent>();
+            }
 		}
 	}
 	public sealed record GameLoadedFromScene : Variable<GameLoadedFromScene, bool>;

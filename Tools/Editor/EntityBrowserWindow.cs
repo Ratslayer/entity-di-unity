@@ -1,17 +1,50 @@
 ﻿using BB.Di;
-using Sirenix.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
 namespace BB
 {
+    public sealed class DebugWindow : EditorWindow
+    {
+        [MenuItem("Tools/BB/Debug Window")]
+        public static void ShowWindow()
+        {
+            GetWindow<DebugWindow>("Debug Window");
+        }
+        private void OnGUI()
+        {
+            if (Application.isPlaying)
+                DrawGameGui();
+            else DrawEditorGui();
+        }
+        void DrawEditorGui()
+        {
+
+        }
+        void DrawGameGui()
+        {
+            using (LayoutUtils.Horizontal)
+            {
+                EditorGuiUtils.Button("Kill Player", KillPlayer);
+            }
+
+            void KillPlayer()
+            {
+                new AddBoardContext
+                {
+                    Entity = World.Require<Player>(),
+                    Key = World.Require<BoardConfig>()._health,
+                    Value = -1e10
+                }.Add();
+            }
+        }
+    }
     public sealed class EntityBrowserWindow : EditorWindow
     {
         const int MaxNumEntries = 10;
-        [MenuItem("Tools/Entity Browser")]
+        [MenuItem("Tools/BB/Entity Browser")]
         public static void ShowWindow()
         {
             GetWindow<EntityBrowserWindow>("Entity Browser");
@@ -120,7 +153,9 @@ namespace BB
                 {
                     if (!Matches(type.Name, searchData._componentName))
                         continue;
-                    entry._components.Add(elem);
+                    if (elem is IEvent)
+                        entry._events.Add(elem);
+                    else entry._components.Add(elem);
                 }
 
                 if (entry._components.Count > 0)
@@ -165,19 +200,41 @@ namespace BB
                     switch (comp)
                     {
                         case IStackValue stack:
-                            if (!EditorGuiUtils.Foldout(stack.CustomToString(), stack))
-                                continue;
-
-                            using (LayoutUtils.Indent)
+                            DrawFoldout(stack.CustomToString(), stack, () =>
                             {
                                 foreach (var value in stack.GetTypelessSourceValues())
                                     EditorGUILayout.LabelField(value.ToString());
-                            }
+                            });
+                            break;
+                        case IBoard board:
+                            DrawFoldout(board.GetType().Name, board, () =>
+                            {
+                                EditorBoardUtils.DrawBoard(board);
+                            });
                             break;
                         default:
                             EditorGUILayout.LabelField(comp.GetType().Name);
                             break;
                     }
+                }
+
+                if (entry._events.Count == 0)
+                    continue;
+                EditorGUILayout.LabelField("Events:");
+                foreach (var e in entry._events)
+                {
+                    var name = e.GetType().GenericTypeArguments[0].Name;
+                    EditorGUILayout.LabelField(name);
+                }
+            }
+            void DrawFoldout(string name, object key, Action draw)
+            {
+                if (!EditorGuiUtils.Foldout(name, key))
+                    return;
+
+                using (LayoutUtils.Indent)
+                {
+                    draw();
                 }
             }
         }
@@ -202,6 +259,7 @@ namespace BB
         {
             public Entity Entity { get; init; }
             public readonly List<object> _components = new();
+            public readonly List<object> _events = new();
         }
     }
 }
