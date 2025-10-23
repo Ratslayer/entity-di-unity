@@ -14,6 +14,8 @@ namespace BB
 				return;
 			loaded.Value = true;
 			World.SetGame(_installer);
+			World.Publish<BeforeLevelSpawnEvent>();
+			World.Publish<AfterLevelSpawnEvent>();
 			World.Publish<StartGameEvent>();
 		}
 	}

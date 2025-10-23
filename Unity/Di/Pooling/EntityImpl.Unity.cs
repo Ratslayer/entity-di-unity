@@ -70,8 +70,6 @@ namespace BB.Di
 				instance.name = $"{prefab.name} {++pool.NumCreatedItems}";
 				prefab.SetActive(true);
 				entity = CreateGameObjectEntity(instance, null, this, pool, true);
-				//_children ??= new();
-				//_children.Add(entity);
 				var ego = entity.Require<EntityGameObject>();
 
 				ego._pool = pool;
