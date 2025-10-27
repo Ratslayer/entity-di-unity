@@ -20,7 +20,7 @@ namespace BB.Di
                     var impl = EntityImpl.CreateEntity(
                         "Editor",
                         null,
-                        editorWorld.Install,
+                        editorWorld,
                         null,
                         true);
                     _entity = impl;

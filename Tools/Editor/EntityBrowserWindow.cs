@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.ShortcutManagement;
 using UnityEngine;
 
 namespace BB
@@ -9,7 +10,8 @@ namespace BB
     public sealed class DebugWindow : EditorWindow
     {
         [MenuItem("Tools/BB/Debug Window")]
-        public static void ShowWindow()
+        [Shortcut("Open Debug Window", KeyCode.Alpha1, ShortcutModifiers.Alt | ShortcutModifiers.Control)]
+        static void ShowWindow()
         {
             GetWindow<DebugWindow>("Debug Window");
         }
@@ -21,7 +23,6 @@ namespace BB
         }
         void DrawEditorGui()
         {
-
         }
         void DrawGameGui()
         {
@@ -29,7 +30,12 @@ namespace BB
             {
                 EditorGuiUtils.Button("Kill Player", KillPlayer);
             }
+            using (LayoutUtils.Horizontal)
+            {
+                EditorGuiUtils.Button("Save Game", SaveGame);
+                EditorGuiUtils.Button("Load Game", LoadGame);
 
+            }
             void KillPlayer()
             {
                 new AddBoardContext
@@ -39,12 +45,27 @@ namespace BB
                     Value = -1e10
                 }.Add();
             }
+            void SaveGame()
+            {
+                World.Require<IGameSaveSystem>().SaveGame(new SaveGameContext
+                {
+                    FilePath = "test_save_game.txt"
+                });
+            }
+            void LoadGame()
+            {
+                World.Require<IGameSaveSystem>().LoadGame(new LoadGameContext
+                {
+                    FilePath = "test_save_game.txt"
+                });
+            }
         }
     }
     public sealed class EntityBrowserWindow : EditorWindow
     {
         const int MaxNumEntries = 10;
         [MenuItem("Tools/BB/Entity Browser")]
+        [Shortcut("Open Entity Browser Window", KeyCode.Alpha2, ShortcutModifiers.Alt | ShortcutModifiers.Control)]
         public static void ShowWindow()
         {
             GetWindow<EntityBrowserWindow>("Entity Browser");

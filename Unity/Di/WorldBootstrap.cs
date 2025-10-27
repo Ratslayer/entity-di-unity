@@ -22,7 +22,7 @@ namespace BB
 			}
 			try
 			{
-				World.Init(context.Install);
+				World.Init(context);
 				_worldManager.SetLifecycle(World.EntityRef as IEntityLifecycle);
 			}
 			catch (Exception e)

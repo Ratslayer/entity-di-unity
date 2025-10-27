@@ -97,7 +97,7 @@ namespace BB.Di
 			var entity = CreateEntity(
 				go.name,
 				parent,
-				ego.Install,
+				ego,
 				pool,
 				isRoot);
 

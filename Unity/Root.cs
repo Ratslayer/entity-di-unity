@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-public sealed record Root
+﻿using BB;
+using UnityEngine;
+public sealed record Root : ISerializableComponent
 {
     public Transform Transform { get; set; }
     #region Events
@@ -15,6 +16,9 @@ public sealed record Root
         if (Transform)
             Transform.gameObject.SetActive(false);
     }
+
+    public IEntityComponentSerializer GetSerializer()
+        => RootSerializerV1.Default;
     #endregion
     public float Scale
     {

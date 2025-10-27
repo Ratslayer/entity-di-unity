@@ -1,7 +1,7 @@
-﻿namespace BB
-{
-	public static partial class World
-	{
+﻿//namespace BB
+//{
+//	public static partial class World
+//	{
 		
-	}
-}
+//	}
+//}
