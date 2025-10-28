@@ -50,7 +50,11 @@ public sealed record Root : ISerializableComponent
         get => Position.y;
         set => Position = Position.SetY(value);
     }
-    public Vector3 Forward => Transform.forward;
+    public Vector3 Forward
+    {
+        get => Transform.forward;
+        set => Rotation = Quaternion.LookRotation(value);
+    }
     public Transform Parent
     {
         get => Transform.parent;
