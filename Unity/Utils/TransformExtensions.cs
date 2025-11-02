@@ -48,10 +48,8 @@ namespace BB
 				yield return t.GetChild(i);
 			}
 		}
-		public static float Distance(this Transform t, Transform t2)
-			=> Vector3.Distance(t.position, t2.position);
-		public static float Distance(this Transform t, Vector3 p)
-			=> Vector3.Distance(t.position, p);
+		public static float Distance(this Transform t, in Vector3Adapter p)
+			=> Vector3.Distance(t.position, p._vector);
 		public static void SetY(this Transform t, float y)
 			=> t.position = t.position.SetY(y);
 	}

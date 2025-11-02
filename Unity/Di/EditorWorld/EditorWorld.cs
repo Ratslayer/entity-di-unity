@@ -12,20 +12,7 @@ namespace BB.Di
             get
             {
                 if (_entity == null)
-                {
-                    var editorWorld
-                        = AssetDatabase.LoadAssetAtPath
-                        <InstallerAsset>(InstallerPath);
-
-                    var impl = EntityImpl.CreateEntity(
-                        "Editor",
-                        null,
-                        editorWorld,
-                        null,
-                        true);
-                    _entity = impl;
-                    impl.State = EntityState.Enabled;
-                }
+                    InitWorld();
                 return _entity;
             }
         }
@@ -35,11 +22,37 @@ namespace BB.Di
                 throw new System.Exception($"EditorInstaller has no {typeof(T).FullName} bound.");
             return result;
         }
+        static void InitWorld()
+        {
+            var editorWorld
+                        = AssetDatabase.LoadAssetAtPath
+                        <InstallerAsset>(InstallerPath);
+            Log.BindLogger(new UnityLogger());
+            var impl = EntityImpl.CreateEntity(
+                "Editor",
+                null,
+                editorWorld,
+                null,
+                true);
+            _entity = impl;
+            impl.State = EntityState.Enabled;
+        }
         [InitializeOnLoadMethod]
         static void CreateEntity()
         {
-            Log.BindLogger(new UnityLogger());
+            InitWorld();
+            EditorApplication.playModeStateChanged -= OnExitPlayMode;
+            EditorApplication.playModeStateChanged += OnExitPlayMode;
         }
+        static void OnExitPlayMode(PlayModeStateChange change)
+        {
+            if (change is not PlayModeStateChange.EnteredEditMode)
+                return;
+            EditorApplication.playModeStateChanged -= OnExitPlayMode;
+            _entity.State = EntityState.Destroyed;
+            InitWorld();
+        }
+
     }
 }
 #endif

@@ -7,60 +7,6 @@ using UnityEngine;
 
 namespace BB
 {
-    public sealed class DebugWindow : EditorWindow
-    {
-        [MenuItem("Tools/BB/Debug Window")]
-        [Shortcut("Open Debug Window", KeyCode.Alpha1, ShortcutModifiers.Alt | ShortcutModifiers.Control)]
-        static void ShowWindow()
-        {
-            GetWindow<DebugWindow>("Debug Window");
-        }
-        private void OnGUI()
-        {
-            if (Application.isPlaying)
-                DrawGameGui();
-            else DrawEditorGui();
-        }
-        void DrawEditorGui()
-        {
-        }
-        void DrawGameGui()
-        {
-            using (LayoutUtils.Horizontal)
-            {
-                EditorGuiUtils.Button("Kill Player", KillPlayer);
-            }
-            using (LayoutUtils.Horizontal)
-            {
-                EditorGuiUtils.Button("Save Game", SaveGame);
-                EditorGuiUtils.Button("Load Game", LoadGame);
-
-            }
-            void KillPlayer()
-            {
-                new AddBoardContext
-                {
-                    Entity = World.Require<Player>(),
-                    Key = World.Require<BoardConfig>()._health,
-                    Value = -1e10
-                }.Add();
-            }
-            void SaveGame()
-            {
-                World.Require<IGameSaveSystem>().SaveGame(new SaveGameContext
-                {
-                    FilePath = "test_save_game.txt"
-                });
-            }
-            void LoadGame()
-            {
-                World.Require<IGameSaveSystem>().LoadGame(new LoadGameContext
-                {
-                    FilePath = "test_save_game.txt"
-                });
-            }
-        }
-    }
     public sealed class EntityBrowserWindow : EditorWindow
     {
         const int MaxNumEntries = 10;

@@ -113,11 +113,13 @@ namespace BB
         //	var points3D = points.Convert((i, v) => new Vector3(v.x, v.y, z));
         //	DrawLines(color, points3D);
         //}
+
         public static void DrawLines(params Vector3[] points)
         {
             for (var i = 0; i < points.Length - 1; i++)
                 Handles.DrawLine(points[i], points[i + 1], LineThickness);
         }
+       
         public static void DrawDottedLine(Color color, Vector3 from, Vector3 to)
         {
             ApplyColor(color, () => Handles.DrawDottedLine(from, to, 3));
@@ -341,6 +343,12 @@ namespace BB
                 new Vector2(p2.x,p1.y)
             };
             DrawBox(Color.clear, color, points);
+        }
+        public static IDisposable ApplyColor(Color color)
+        {
+            Color originalColor = Handles.color;
+            Handles.color = color;
+            return ActionOnDispose.GetPooled(() => Handles.color = originalColor);
         }
         public static void DrawWorldPoint(Color color, Vector3 position, float size, Action onClick)
         {
