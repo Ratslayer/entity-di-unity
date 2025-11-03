@@ -9,6 +9,12 @@ namespace BB
 			container.Instance(GetType(), this);
 		}
 	}
+	public abstract class InstallerAsset3D : InstallerAsset
+	{
+	}
+	public abstract class InstallerAsset2D : InstallerAsset
+	{
+	}
 	public abstract class EntityComponentAsset : BaseScriptableObject, IEntityStateOnEnter, IEntityStateOnExit
 	{
 		public string Name => name;
