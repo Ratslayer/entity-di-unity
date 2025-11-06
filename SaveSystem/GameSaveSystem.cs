@@ -4,6 +4,7 @@ using Sirenix.Utilities;
 using System;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 namespace BB
 {
@@ -35,7 +36,7 @@ namespace BB
         UniTask LoadGame(LoadGameContext e);
     }
     public sealed record GameSaveSystem(
-        LoadableAssets Assets,
+        ILoadableAssets Assets,
         IFileSystem FileSystem,
         ISerializedEntities SerializedEntities) : IGameSaveSystem
     {
@@ -161,13 +162,25 @@ namespace BB
             if (saveData.SaveDatas.IsNullOrEmpty())
                 return;
 
-            foreach (var compData in saveData.SaveDatas)
-            {
-                var serializer = GetComponentSerializer(compData.SerializerName);
-                if(serializer is null)
-                    continue;
+            var serializers = saveData.SaveDatas
+                .Select(data => (GetComponentSerializer(data.SerializerName), data.SerializedData))
+                .ToList();
 
-                serializer.Apply(entity, compData.SerializedData);
+            foreach (var (serializer, data) in serializers)
+            {
+                serializer.ApplySpawn(new()
+                {
+                    Entity = entity,
+                    SerializedData = data,
+                });
+            }
+            foreach (var (serializer, data) in serializers)
+            {
+                serializer.ApplyAfterSpawn(new()
+                {
+                    Entity = entity,
+                    SerializedData = data,
+                });
             }
         }
         IEntityComponentSerializer GetComponentSerializer(string name)
@@ -185,7 +198,7 @@ namespace BB
                 return;
 
             _serializers = new();
-            foreach(var type in GetType().Assembly.GetTypes())
+            foreach (var type in GetType().Assembly.GetTypes())
             {
                 if (!typeof(IEntityComponentSerializer).IsAssignableFrom(type))
                     continue;
@@ -238,7 +251,13 @@ namespace BB
     public interface IEntityComponentSerializer
     {
         object Serialize(object target);
-        void Apply(Entity entity, object serializedData);
+        void ApplySpawn(in DeserializationContext context);
+        void ApplyAfterSpawn(in DeserializationContext context);
+    }
+    public readonly struct DeserializationContext
+    {
+        public Entity Entity { get; init; }
+        public object SerializedData { get; init; }
     }
     public interface ISerializableComponent
     {

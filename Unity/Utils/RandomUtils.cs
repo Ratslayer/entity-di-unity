@@ -27,6 +27,27 @@ public static class RandomUtils
             1 => list[0],
             _ => list[Range(0, list.Count)]
         };
+    public static T RandomElement<T>(this IReadOnlyList<T> list, System.Func<T, bool> predicate)
+    {
+        switch (list.Count)
+        {
+            case 0:
+                return default;
+            case 1:
+                return list[0];
+            default:
+                var startIndex = Range(0, list.Count);
+                foreach (var i in list.Count)
+                {
+                    var index = (startIndex + i) % list.Count;
+                    var element = list[index];
+                    if (predicate(element))
+                        return element;
+                }
+                return list.RandomElement();
+        }
+
+    }
     public static float Value => Range(0f, 1f);
     public static Color Color => Random.ColorHSV(0, 1, 1, 1, 1, 1, 1, 1);
     public static bool Roll(double chance)

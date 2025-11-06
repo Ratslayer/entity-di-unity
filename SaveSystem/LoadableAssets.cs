@@ -9,7 +9,11 @@ using UnityEditor;
 
 namespace BB
 {
-    public sealed class LoadableAssets : BaseScriptableObject
+    public interface ILoadableAssets
+    {
+        bool HasAsset(string key, out BaseScriptableObject asset);
+    }
+    public sealed class LoadableAssets : BaseScriptableObject, ILoadableAssets
     {
         [SerializeField, ReadOnly]
         LoadableAsset[] _assets = { };
@@ -23,6 +27,18 @@ namespace BB
             public LazyLoadReference<BaseScriptableObject> _asset;
             [ShowInInspector, LabelText("$_name")]
             public BaseScriptableObject Asset => _asset.asset;
+        }
+        public bool HasAsset(string key, out BaseScriptableObject asset)
+        {
+            foreach (var a in _assets)
+            {
+                if (a._name != key)
+                    continue;
+                asset = a.Asset;
+                return true;
+            }
+            asset = null;
+            return false;
         }
 #if UNITY_EDITOR
         [Button]

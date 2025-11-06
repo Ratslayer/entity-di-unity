@@ -3,7 +3,7 @@ using UnityEngine;
 
 public sealed class RootSerializerV1 : BaseSerializer<RootSerializerV1, Root, RootSerializerV1.Data>
 {
-    protected override void Apply(Root target, Data data)
+    protected override void ApplyAfterSpawn(Root target, Data data)
     {
         target.Position = data.Position;
         target.Rotation = data.Rotation;
