@@ -49,6 +49,14 @@ namespace BB
                     _usage |= TransformOperationUsage.Local;
             }
         }
+        public bool Additive
+        {
+            init
+            {
+                if (value)
+                    _usage |= TransformOperationUsage.Additive;
+            }
+        }
         #endregion
         #region Constructors
         public TransformOperation(
