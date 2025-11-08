@@ -27,6 +27,18 @@ public static class RandomUtils
             1 => list[0],
             _ => list[Range(0, list.Count)]
         };
+    public static T RandomElementExcluding<T>(this IReadOnlyList<T> list, T element)
+    {
+        foreach (var i in list.Count)
+        {
+            if (!EqualityComparer<T>.Default.Equals(list[i], element))
+                continue;
+            var index = (i + Range(0, list.Count)) % list.Count;
+            return list[index];
+        }
+
+        return RandomElement(list);
+    }
     public static T RandomElement<T>(this IReadOnlyList<T> list, System.Func<T, bool> predicate)
     {
         switch (list.Count)
