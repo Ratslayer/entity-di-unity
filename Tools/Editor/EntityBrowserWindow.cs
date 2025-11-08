@@ -11,7 +11,7 @@ namespace BB
     {
         const int MaxNumEntries = 10;
         [MenuItem("Tools/BB/Entity Browser")]
-        [Shortcut("Open Entity Browser Window", KeyCode.Alpha2, ShortcutModifiers.Alt | ShortcutModifiers.Control)]
+        [Shortcut("Open Entity Browser Window", KeyCode.F2, ShortcutModifiers.Shift)]
         public static void ShowWindow()
         {
             GetWindow<EntityBrowserWindow>("Entity Browser");
