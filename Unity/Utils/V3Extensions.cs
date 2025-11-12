@@ -33,4 +33,6 @@ public static class V3Extensions
     }
     public static Vector3 Mul(this Vector3 v1, Vector3 v2)
         => new(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
+    public static float FlatAngle(this Vector3 v1, Vector3 v2)
+        => Mathf.Abs(Vector3.SignedAngle(v1, v2, Vector3.up));
 }

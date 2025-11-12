@@ -49,11 +49,9 @@ namespace BB
             var game = GetEntitySaveData(gameEntity);
 
             var scenes = PooledDictionary<Scene, List<EntitySaveData>>.GetPooled();
-
-            foreach (var se in SerializedEntities.GetAll())
+            var existingPaths = SerializedEntities.BuildExistingEntityPaths();
+            foreach (var (path, entity) in existingPaths)
             {
-                var entity = se.Entity.GetToken();
-                var path = se.SerializedName;
                 var data = GetEntitySaveData(entity, path);
                 var scene = entity.Has(out Root root) ? root.Transform.gameObject.scene : default;
                 if (!scenes.TryGetValue(scene, out var datas))
@@ -135,6 +133,8 @@ namespace BB
                 Path = path,
             });
 
+            var existingEntities = SerializedEntities.BuildExistingEntityPaths();
+
             ApplySaveData(World.GetWorldEntity(), saveData.World);
             ApplySaveData(World.GetGameEntity(), saveData.Game);
             foreach (var sceneData in saveData.SceneSaveDatas)
@@ -151,7 +151,7 @@ namespace BB
 
                 foreach (var data in sceneData.EntitySaveDatas)
                 {
-                    if (!SerializedEntities.Has(data.EntityPath, out var entity))
+                    if (!existingEntities.TryGetValue(data.EntityPath, out var entity))
                         return;
                     ApplySaveData(entity, data);
                 }

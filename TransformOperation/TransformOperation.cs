@@ -17,7 +17,7 @@ namespace BB
                 _usage |= TransformOperationUsage.Parent;
             }
         }
-        public Vector3 Position
+        public Vector3Adapter Position
         {
             init
             {
@@ -55,6 +55,13 @@ namespace BB
             {
                 if (value)
                     _usage |= TransformOperationUsage.Additive;
+            }
+        }
+        public Vector3 Forward
+        {
+            init
+            {
+                Rotation = Quaternion.LookRotation(value);
             }
         }
         #endregion

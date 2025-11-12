@@ -61,12 +61,18 @@ public sealed record Root : ISerializableComponent
         set => Transform.SetParent(value);
     }
     public Vector3 ForwardFlat => Forward.Flat();
+    #region Operators
     public static implicit operator Vector3(Root root)
         => root.Transform.position;
     public static implicit operator Transform(Root root)
         => root?.Transform;
     public static implicit operator Quaternion(Root root)
         => root.Rotation;
+    public static Vector3 operator -(Root root, in TransformAdapter adapter)
+        => root.Position - adapter._transform.position;
+    public static Vector3 operator -(in TransformAdapter adapter, Root root)
+        => adapter._transform.position - root.Position;
+    #endregion
 }
 public static class RootExtensions
 {

@@ -9,10 +9,6 @@ using UnityEditor;
 
 namespace BB
 {
-    public interface ILoadableAssets
-    {
-        bool HasAsset(string key, out BaseScriptableObject asset);
-    }
     public sealed class LoadableAssets : BaseScriptableObject, ILoadableAssets
     {
         [SerializeField, ReadOnly]
