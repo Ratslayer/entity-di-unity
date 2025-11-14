@@ -68,6 +68,9 @@ public sealed record Root : ISerializableComponent
         => root?.Transform;
     public static implicit operator Quaternion(Root root)
         => root.Rotation;
+
+    public static Vector3 operator -(Root l, Root r)
+        => l.Position - r.Position;
     public static Vector3 operator -(Root root, in TransformAdapter adapter)
         => root.Position - adapter._transform.position;
     public static Vector3 operator -(in TransformAdapter adapter, Root root)

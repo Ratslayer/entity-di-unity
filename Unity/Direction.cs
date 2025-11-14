@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.LowLevel;
 
 namespace BB
 {
@@ -33,5 +34,16 @@ namespace BB
                 Direction.Down => Vector3.down,
                 _ => Vector3.zero
             };
+        public static Direction ToRotatedDirection(this Vector3 v, Vector3 forward)
+        {
+            var angle = v.SignedFlatAngle(forward);
+            if (angle > 45 && angle <= 135)
+                return Direction.Left;
+            if (angle < -45 && angle >= -135)
+                return Direction.Right;
+            if (angle > 135 || angle < -135)
+                return Direction.Back;
+            return Direction.Forward;
+        }
     }
 }
