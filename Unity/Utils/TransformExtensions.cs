@@ -52,5 +52,14 @@ namespace BB
 			=> Vector3.Distance(t.position, p._vector);
 		public static void SetY(this Transform t, float y)
 			=> t.position = t.position.SetY(y);
+
+		public static bool IsInHierarchyOf(this Transform parent, Transform t)
+		{
+			if (!parent || !t)
+				return false;
+			if (parent == t)
+				return true;
+			return parent.IsInHierarchyOf(t.parent);
+		}
 	}
 }

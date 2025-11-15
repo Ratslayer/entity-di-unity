@@ -91,9 +91,9 @@ namespace BB
             if (HasFlag(TransformOperationUsage.Additive))
             {
                 if (HasFlag(TransformOperationUsage.Position))
-                    transform.position += _position;
+                    transform.localPosition += _position;
                 if (HasFlag(TransformOperationUsage.Rotation))
-                    transform.rotation *= _rotation;
+                    transform.localRotation *= _rotation;
             }
             else if (HasFlag(TransformOperationUsage.Local))
             {

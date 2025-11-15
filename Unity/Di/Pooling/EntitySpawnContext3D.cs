@@ -14,6 +14,7 @@ namespace BB
 
         public Entity Spawn()
         {
+
             if (Installer.Prefab)
             {
 
@@ -21,11 +22,7 @@ namespace BB
                     Installer.Prefab,
                     Parent);
 
-                var root = entity.Require<Root>();
-
-                Transform?.Apply(root);
-                if (DoNotDestroyOnLoad)
-                    GameObject.DontDestroyOnLoad(root.Transform);
+                ApplyTransform(entity);
 
                 var token = GameObjectSpawnUtils.EnableEntity(entity);
                 if (!string.IsNullOrWhiteSpace(SerializationName))
@@ -33,12 +30,18 @@ namespace BB
                 return token;
             }
             if (Installer.Installer)
-                return new EntitySpawnContext
+            {
+                var entity = new EntitySpawnContext
                 {
                     Installer = Installer.Installer,
                     Parent = Parent,
                     SerializationName = SerializationName,
                 }.Spawn();
+
+                ApplyTransform(entity._ref);
+
+                return entity;
+            }
 
             throw new ArgumentException($"Could not create an entity with this context.");
         }
@@ -46,6 +49,15 @@ namespace BB
         {
             var entity = Spawn();
             return GameObjectSpawnUtils.GameObjectEntityRequire<T>(entity);
+        }
+
+        void ApplyTransform(IEntity entity)
+        {
+            var root = entity.Require<Root>();
+
+            Transform?.Apply(root);
+            if (DoNotDestroyOnLoad)
+                GameObject.DontDestroyOnLoad(root.Transform);
         }
     }
 }
