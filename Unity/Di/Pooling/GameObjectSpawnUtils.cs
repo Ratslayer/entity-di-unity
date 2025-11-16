@@ -39,7 +39,7 @@ namespace BB
             entity.State = EntityState.Enabled;
             return entity.GetToken();
         }
-        public static T GameObjectEntityRequire<T>(in Entity entity)
+        public static T GameObjectEntityRequire<T>(this Entity entity)
             where T : class
         {
             T result = null;
