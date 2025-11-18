@@ -1,5 +1,4 @@
-﻿using BB.Map;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,8 +6,8 @@ namespace BB
 {
     public static class SerializedObjectExtensions
     {
-        static readonly Dictionary<UnityEngine.Object, SerializedObject> _objects = new();
-        public static SerializedObject GetSerializedObject(this UnityEngine.Object obj)
+        static readonly Dictionary<Object, SerializedObject> _objects = new();
+        public static SerializedObject GetSerializedObject(this Object obj)
         {
             if (!_objects.TryGetValue(obj, out var serializedObject))
             {
@@ -18,7 +17,7 @@ namespace BB
 
             return serializedObject;
         }
-        public static SerializedProperty GetSerializedProperty(this UnityEngine.Object obj, string path)
+        public static SerializedProperty GetSerializedProperty(this Object obj, string path)
         {
             var so = obj.GetSerializedObject();
             return so.FindProperty(path);
@@ -29,7 +28,7 @@ namespace BB
                 prop = prop.FindPropertyRelative(childProperty);
             EditorGUILayout.PropertyField(prop);
         }
-        public static void DrawProperty(this UnityEngine.Object obj, params string[] elements)
+        public static void DrawProperty(this Object obj, params string[] elements)
         {
             var path = string.Join('/', elements);
             var property = obj.GetSerializedProperty(path);

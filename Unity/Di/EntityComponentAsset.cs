@@ -1,20 +1,5 @@
-﻿using BB.Di;
-namespace BB
+﻿namespace BB
 {
-	public abstract class InstallerAsset : BaseScriptableObject, IEntityInstaller
-	{
-		public string Name => name;
-		public virtual void Install(IDiContainer container)
-		{
-			container.Instance(GetType(), this);
-		}
-	}
-	public abstract class InstallerAsset3D : InstallerAsset
-	{
-	}
-	public abstract class InstallerAsset2D : InstallerAsset
-	{
-	}
 	public abstract class EntityComponentAsset : BaseScriptableObject, IEntityStateOnEnter, IEntityStateOnExit
 	{
 		public string Name => name;
