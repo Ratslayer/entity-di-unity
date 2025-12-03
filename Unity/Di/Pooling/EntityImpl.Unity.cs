@@ -9,10 +9,7 @@ namespace BB.Di
     }
     public partial class EntityImpl : IEntityUnity
     {
-#if UNITY_EDITOR
-        public Guid DebugGuid { get; private set; } = Guid.NewGuid();
-#endif
-        sealed class UnityPool : IEntityPool
+        sealed class UnityPool : IEntityPoolOld
         {
             static GameObject _poolsParent;
             readonly Transform _parent;
@@ -89,7 +86,7 @@ namespace BB.Di
             GameObject go,
             EntityGameObject parentEgo,
             EntityImpl parent,
-            IEntityPool pool,
+            IEntityPoolOld pool,
             bool isRoot)
         {
             var ego = go.AddComponent<EntityGameObject>();

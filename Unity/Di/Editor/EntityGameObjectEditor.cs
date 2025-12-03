@@ -30,7 +30,7 @@ public sealed class EntityGameObjectEditor : BaseEditor
 				EditorEntityUtils.DrawContainerEditor(_displayData);
 		}
 		static string GetName(IEntity e) => e is null ? "--"
-			: $"{e.Name} - {(e as EntityImpl).DebugGuid}";
+			: $"{e.Name} - {e.CurrentSpawnId}";
 	}
 }
 public sealed class ContainerDisplayData

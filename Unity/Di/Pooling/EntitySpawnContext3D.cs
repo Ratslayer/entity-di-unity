@@ -15,11 +15,11 @@ namespace BB
         public Entity Spawn()
         {
 
-            if (Installer.Prefab)
+            if (Installer.PrefabInstaller)
             {
 
                 var entity = GameObjectSpawnUtils.CreateDespawnedGameObjectEntity(
-                    Installer.Prefab,
+                    Installer.PrefabInstaller,
                     Parent);
 
                 ApplyTransform(entity);

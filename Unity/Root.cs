@@ -1,25 +1,52 @@
 ﻿using BB;
+using BB.Di;
 using UnityEngine;
-public sealed record Root : ISerializableComponent
+public abstract class BaseRoot
 {
-    public Transform Transform { get; set; }
+    public abstract void SetGameObject(GameObject go);
+    protected GameObject GameObject { get; set; }
     #region Events
     [OnEnable]
     void OnEnable()
     {
-        if (Transform)
-            Transform.gameObject.SetActive(true);
+        if (GameObject)
+            GameObject.SetActive(true);
     }
     [OnDisable]
     void OnDisable()
     {
-        if (Transform)
-            Transform.gameObject.SetActive(false);
+        if (GameObject)
+            GameObject.SetActive(false);
+    }
+    [OnDespawn]
+    void OnDespawn()
+    {
+        if (!GameObject.TryGetComponent(out PooledGameObject pgo))
+            return;
+        SetGameObject(null);
+        pgo.ReturnToPool();
     }
 
+    #endregion
+}
+public sealed class Root2D : BaseRoot
+{
+    public RectTransform Transform { get; private set; }
+
+    public override void SetGameObject(GameObject go)
+    {
+        Transform = go.GetComponent<RectTransform>();
+    }
+}
+public sealed class Root : BaseRoot, ISerializableComponent
+{
+    public Transform Transform { get; private set; }
+    public override void SetGameObject(GameObject go)
+    {
+        Transform = go.transform;
+    }
     public IEntityComponentSerializer GetSerializer()
         => RootSerializerV1.Default;
-    #endregion
     public float Scale
     {
         get => Transform.localScale.x;

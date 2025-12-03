@@ -7,6 +7,7 @@ namespace BB
 		public virtual void Install(IDiContainer container)
 		{
 			container.Instance(GetType(), this);
+			EntityUtils.BindBaseEntityEvents(container);
 		}
 	}
 }
