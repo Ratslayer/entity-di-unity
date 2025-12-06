@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-
 namespace BB.Di
 {
     public sealed class ComponentDiComponent : BaseDiComponent

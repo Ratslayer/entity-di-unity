@@ -19,4 +19,8 @@ namespace BB.Di
     {
         GameObject GetDisabledInstance(GameObject prefab);
     }
+    public sealed class PrefabSpawnManager : IPrefabSpawnManager
+    {
+
+    }
 }

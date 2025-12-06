@@ -27,7 +27,7 @@ namespace BB.Di
             public Entity? Parent { get; init; }
         }
     }
-    public sealed class UnityFromInstallerSpawner3D
+    public sealed class UnityFromInstallerSpawner
           : BaseEntitySpawnManager<IUnityFromInstallerSpawner.CommonContext>, IUnityFromInstallerSpawner
     {
         [Inject] IPrefabSpawnManager _prefabSpawnManager;
