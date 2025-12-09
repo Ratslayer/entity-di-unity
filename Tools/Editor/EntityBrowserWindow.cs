@@ -48,8 +48,7 @@ namespace BB
                     continue;
 
                 _entities.Add(entityRef.GetToken());
-                if (entityRef is IEntityDetails details)
-                    entitiesQueue.AddRange(details.GetChildren());
+                entitiesQueue.AddRange(entityRef.Children);
             }
 
             UpdatedSearchedEntries();
@@ -116,13 +115,13 @@ namespace BB
                     Entity = entity
                 };
 
-                foreach (var (type, elem) in details.GetElements())
+                foreach (var element in details.GetElements())
                 {
-                    if (!Matches(type.Name, searchData._componentName))
+                    if (!Matches(element.ContractType.Name, searchData._componentName))
                         continue;
-                    if (elem is IEvent)
-                        entry._events.Add(elem);
-                    else entry._components.Add(elem);
+                    if (element.Instance is IEvent)
+                        entry._events.Add(element.Instance);
+                    else entry._components.Add(element.Instance);
                 }
 
                 if (entry._components.Count > 0)

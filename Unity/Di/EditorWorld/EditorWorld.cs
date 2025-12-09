@@ -28,14 +28,15 @@ namespace BB.Di
                         = AssetDatabase.LoadAssetAtPath
                         <InstallerAsset>(InstallerPath);
             Log.BindLogger(new UnityLogger());
-            var impl = EntityImpl.CreateEntity(
-                "Editor",
-                null,
-                editorWorld,
-                null,
-                true);
-            _entity = impl;
-            impl.State = EntityState.Enabled;
+            //var impl = EntityImpl.CreateEntity(
+            //    "Editor",
+            //    null,
+            //    editorWorld,
+            //    null,
+            //    true);
+            //_entity = impl;
+            IEntity impl = null;
+            impl.SetState(EntityState.Enabled);
         }
         [InitializeOnLoadMethod]
         static void CreateEntity()
@@ -49,7 +50,7 @@ namespace BB.Di
             if (change is not PlayModeStateChange.EnteredEditMode)
                 return;
             EditorApplication.playModeStateChanged -= OnExitPlayMode;
-            _entity.State = EntityState.Destroyed;
+            _entity.SetState(EntityState.Destroyed);
             InitWorld();
         }
 

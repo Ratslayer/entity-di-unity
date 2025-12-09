@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using BB.Di;
 
-[CustomEditor(typeof(EntityGameObject))]
+[CustomEditor(typeof(BaseEntityGameObject))]
 public sealed class EntityGameObjectEditor : BaseEditor
 {
 	bool _binds;
@@ -14,15 +14,14 @@ public sealed class EntityGameObjectEditor : BaseEditor
 	protected override void InspectorGUI()
 	{
 		base.InspectorGUI();
-		var t = (EntityGameObject)target;
+		var t = (BaseEntityGameObject)target;
 		var entity = t.Entity._ref as IEntityDetails;
 		if (entity is null)
 			return;
 		EditorGUILayout.LabelField($"Spawn Id: {entity.CurrentSpawnId} Actual Id: {t.Entity._id}");
 		EditorGUILayout.LabelField($"State: {entity.State}");
 		EditorGUILayout.LabelField($"Parent: {GetName(entity.Parent)}");
-		EditorGUILayout.LabelField($"Attached to: " +
-			$"{(t.Entity.AttachedToEntity ? GetName(t.Entity._ref) : "")}");
+		
 		_displayData ??= new(entity);
 		using (LayoutUtils.Foldout("Binds", ref _binds))
 		{
@@ -157,13 +156,13 @@ public static class EditorEntityUtils
 	public static List<ContainerBindData> BuildDatas(IEntityDetails entity)
 	{
 		var result = new List<ContainerBindData>();
-		foreach (var (contractType, instance) in entity.GetElements())
+		foreach (var element in entity.GetElements())
 		{
-			var instanceType = instance.GetType();
+			var instanceType = element.Instance.GetType();
 			var data = new ContainerBindData(
-				contractType,
+				element.ContractType,
 				instanceType,
-				instance);
+				element.Instance);
 			result.Add(data);
 			AddTag<IVariable>(Variable);
 			AddTag<EntityBehaviour>(Behaviour);

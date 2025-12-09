@@ -6,9 +6,9 @@ namespace BB
     {
         [Inject]
         ILoadableBehaviours _behaviours;
-        [OnSpawn]
+        [OnEvent(typeof(EntitySpawnedEvent))]
         void OnSpawn() => _behaviours.Add(this);
-        [OnDespawn]
+        [OnEvent(typeof(EntityDespawnedEvent))]
         void OnDespawn() => _behaviours.Remove(this);
         protected virtual string LoadName => name;
         protected virtual string LoadNamePrefix => null;

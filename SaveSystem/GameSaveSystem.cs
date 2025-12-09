@@ -35,11 +35,11 @@ namespace BB
         UniTask SaveGame(SaveGameContext e);
         UniTask LoadGame(LoadGameContext e);
     }
-    public sealed record GameSaveSystem(
-        ILoadableAssets Assets,
-        IFileSystem FileSystem,
-        ISerializedEntities SerializedEntities) : IGameSaveSystem
+    public sealed class GameSaveSystem : IGameSaveSystem
     {
+        [Inject] ILoadableAssets _assets;
+        [Inject] IFileSystem _fileSystem;
+        [Inject] ISerializedEntities _serializedEntities;
         public async UniTask SaveGame(SaveGameContext e)
         {
             var worldEntity = World.GetWorldEntity();
@@ -49,7 +49,7 @@ namespace BB
             var game = GetEntitySaveData(gameEntity);
 
             var scenes = PooledDictionary<Scene, List<EntitySaveData>>.GetPooled();
-            var existingPaths = SerializedEntities.BuildExistingEntityPaths();
+            var existingPaths = _serializedEntities.BuildExistingEntityPaths();
             foreach (var (path, entity) in existingPaths)
             {
                 var data = GetEntitySaveData(entity, path);
@@ -87,7 +87,7 @@ namespace BB
 
             var filePath = GetSavePath(e.FilePath);
 
-            await FileSystem.Write(new()
+            await _fileSystem.Write(new()
             {
                 Path = filePath,
                 Data = gameSaveData
@@ -102,10 +102,10 @@ namespace BB
                 var factoryName = details.Installer is ILoadableAsset asset
                     ? asset.AssetLoadKey : string.Empty;
                 var components = PooledList<EntityComponentSaveData>.GetPooled();
-                foreach (var (type, comp) in details.GetElements())
-                    if (comp is ISerializableComponent serializedComp)
+                foreach (var element in details.GetElements())
+                    if (element.DiComponent is ISerializableComponent comp)
                     {
-                        var serializer = serializedComp.GetSerializer();
+                        var serializer = comp.GetSerializer();
                         var data = serializer.Serialize(comp);
                         components.Add(new()
                         {
@@ -128,12 +128,12 @@ namespace BB
             InitSerializers();
             var path = GetSavePath(e.FilePath);
 
-            var saveData = await FileSystem.Read<GameSaveData>(new()
+            var saveData = await _fileSystem.Read<GameSaveData>(new()
             {
                 Path = path,
             });
 
-            var existingEntities = SerializedEntities.BuildExistingEntityPaths();
+            var existingEntities = _serializedEntities.BuildExistingEntityPaths();
 
             ApplySaveData(World.GetWorldEntity(), saveData.World);
             ApplySaveData(World.GetGameEntity(), saveData.Game);

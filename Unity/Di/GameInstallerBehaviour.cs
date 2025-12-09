@@ -28,6 +28,6 @@ namespace BB
             }
 		}
 	}
-	public sealed record GameLoadedFromScene : Variable<GameLoadedFromScene, bool>;
+	public sealed class GameLoadedFromScene : Variable<GameLoadedFromScene, bool> { }
 
 }

@@ -18,7 +18,7 @@ namespace BB
             [Inject]
             IEntity _entity;
             [OnEvent]
-            void OnCreate(CreatedEvent _)
+            void OnCreate(EntityCreatedEvent _)
             {
                 var updates = new GameObject("World Updates").AddComponent<WorldUpdates>();
                 updates.SetEntity(_entity);

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Reflection;
+using UnityEngine;
 namespace BB.Di
 {
     public sealed class ComponentDiComponent : BaseDiComponent
@@ -17,6 +19,7 @@ namespace BB.Di
         public override bool Validate(IEntityInstaller installer) => true;
     }
     public interface IEntityInstaller3D : IEntityInstaller { }
+    public interface IEntityInstaller2D : IEntityInstaller { }
     public interface IUnityFromPrefabSpawner
     {
         Entity Spawn(in Context3D context);
@@ -37,7 +40,7 @@ namespace BB.Di
         public readonly struct CommonContext : ISpawnContext
         {
             public IEntityInstaller Installer => Prefab;
-            public BaseEntityGameObject Prefab { get; init; }
+            public BaseEntityInstallerGameObject Prefab { get; init; }
             public Entity? Parent { get; init; }
         }
     }
@@ -79,7 +82,7 @@ namespace BB.Di
         {
             var pool = new EntityPool();
             var injector = CreateInjector(context);
-            var factory = new EntityFromPrefabFactory(pool, context.Prefab.gameObject);
+            var factory = new EntityFromPrefabFactory(pool, context.Installer, context.Prefab.gameObject);
             return new EntitySpawnData
             {
                 Pool = pool,
@@ -92,6 +95,7 @@ namespace BB.Di
 
     public sealed record EntityFromPrefabFactory(
         IEntityPool Pool,
+        IEntityInstaller Installer,
         GameObject Prefab
         ) : IEntityFactory
     {
@@ -101,77 +105,106 @@ namespace BB.Di
             var instance = UnityEngine.Object.Instantiate(Prefab);
             Prefab.SetActive(true);
 
-            var entity = new UnityEntity(context.Name, Pool, instance);
+            var entity = new UnityEntity(context.Name, Pool, Installer, instance);
             var root = entity.Require<Root>();
-            root.Transform = instance.transform;
+            root.SetGameObject(instance);
             return entity;
         }
     }
-    public sealed class UnityEntity : BaseEntity
-    {
-        public GameObject Object { get; private set; }
-        public UnityEntity(
-            string name,
-            IEntityPool pool,
-            GameObject gameObject) : base(name, pool)
-        {
-            Object = gameObject;
-        }
-    }
-    public abstract class BaseEntityGameObject
-        : BaseBehaviour,
+    public sealed record UnityEntity(string Name,
+        IEntityPool Pool,
+        IEntityInstaller Installer,
+        GameObject Object) : BaseEntity(Name, Pool, Installer);
+    public abstract class BaseEntityInstallerGameObject
+        : BaseEntityGameObject,
         IEntityBehaviour,
         IEntityInstaller
     {
         public string Name => name;
 
-        public Entity Entity { get; set; }
 
         public abstract void Install(IDiContainer container);
+        public override void Despawn() => _entityRef.SetState(EntityState.Despawned);
     }
-    public sealed class EntityGameObject3D : BaseEntityGameObject
+    public sealed class EntityGameObject3D : BaseEntityInstallerGameObject
     {
         public override void Install(IDiContainer container)
         {
             container.System<Root>();
         }
     }
-    public sealed class EntityGameObject2D : BaseEntityGameObject
+    public sealed class EntityGameObject2D : BaseEntityInstallerGameObject
     {
         public override void Install(IDiContainer container)
         {
             container.System<Root2D>();
         }
     }
-    public abstract class BaseEntityComponent : BaseBehaviour
+    public static class UnityDiExtensions
     {
-        public virtual void Install(IDiContainer container)
+        public static void Component<T>(this IDiContainer container)
+            => container.Component(typeof(T));
+        public static void Component(this IDiContainer container, Type type)
         {
-            container.BindStrategy(new ComponentDiComponent(new()
+            container.AddComponent(new ComponentDiComponent(new()
             {
-                ContractType = GetType(),
-                InstanceType = GetType(),
+                ContractType = type,
+                InstanceType = type,
             }));
         }
     }
+    public abstract class BaseEntityComponent : BaseBehaviour, IEntityProvider, IEntityBehaviour
+    {
+        public virtual void Install(IDiContainer container)
+        {
+            container.Component(GetType());
+        }
+        bool _getAttributeRead = false;
+        [Get]
+        BaseEntityInstallerGameObject _gameObject;
+        public Entity Entity => _gameObject.Entity;
+
+        protected virtual void Awake()
+        {
+            ReadGetAttribute();
+        }
+        void ReadGetAttribute()
+        {
+            if (_getAttributeRead)
+                return;
+            _getAttributeRead = true;
+            foreach (var info in ReflectionUtils.GetAllMembersWithAttribute<GetAttribute>(GetType()))
+                switch (info)
+                {
+                    case PropertyInfo prop:
+                        prop.SetValue(this, GetComponent(prop.PropertyType));
+                        break;
+                    case FieldInfo field:
+                        field.SetValue(this, GetComponent(field.FieldType));
+                        break;
+                }
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
+    public sealed class GetAttribute : Attribute { }
+
     [RequireComponent(typeof(EntityGameObject3D))]
-    public abstract class EntityComponent3D : BaseEntityComponent
+    public abstract class EntityBehaviour : BaseEntityComponent
     {
     }
     [RequireComponent(typeof(EntityGameObject2D))]
-    public abstract class EntityComponent2D : BaseEntityComponent
+    public abstract class EntityBehaviour2D : BaseEntityComponent
     {
+        [Get]
+        public RectTransform Rt { get; private set; }
     }
-    public sealed class UnityEntity<TPrefab> : BaseEntity
-        where TPrefab : MonoBehaviour, IEntityInstaller
-    {
-        public readonly TPrefab _instance;
-        public UnityEntity(string name, IEntityPool pool, TPrefab instance)
-            : base(name, pool)
-        {
-            _instance = instance;
-        }
-    }
+    public sealed record UnityEntity<TPrefab>(
+        string Name,
+        IEntityPool Pool,
+        IEntityInstaller Installer,
+        TPrefab Instance) : BaseEntity(Name, Pool, Installer)
+        where TPrefab : MonoBehaviour, IEntityInstaller;
     public interface IUnityEntityPools3D
     {
         IUnityEntityPool3D GetPool(EntityGameObject3D prefab);

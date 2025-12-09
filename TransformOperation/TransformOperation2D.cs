@@ -59,9 +59,10 @@ namespace BB
                 AnchoredPosition = Vector2.zero;
             }
         }
-        public void Apply(in TransformAdapter ta)
+        public void Apply(in TransformAdapter2D ta)
         {
-            if (!ta._transform.TryGetComponent(out RectTransform rt))
+            var rt = ta._rt;
+            if (!rt)
                 return;
             if (_usage.HasFlag(TransformOperation2DUsage.Parent))
                 rt.SetParent(_parent);

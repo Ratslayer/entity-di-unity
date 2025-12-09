@@ -7,9 +7,12 @@ namespace BB
 		public Vector3 Velocity { get; set; }
 		public Vector3 AngularVelocity { get; set; }
 	}
-	public sealed record RigidBodyVelocityController(Rigidbody Rb) : IVelocityController
+	public sealed record RigidBodyVelocityController() : IVelocityController
 	{
-		public Vector3 Velocity
+		[Inject]
+		Rigidbody Rb;
+
+        public Vector3 Velocity
 		{
 			get => Rb.linearVelocity;
 			set

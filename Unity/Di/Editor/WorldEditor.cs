@@ -1,4 +1,5 @@
 ﻿#if UNITY_EDITOR
+using BB.Di;
 using UnityEditor;
 namespace BB
 {
@@ -15,7 +16,7 @@ namespace BB
 			if (c != PlayModeStateChange.ExitingPlayMode)
 				return;
 			EditorApplication.playModeStateChanged -= Quit;
-			World.DestroyAllWorldEntities();
+			WorldBootstrap.ClearWorldEntities();
 		}
 	}
 }

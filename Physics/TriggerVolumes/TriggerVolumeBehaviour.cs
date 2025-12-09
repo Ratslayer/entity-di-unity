@@ -4,35 +4,39 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace BB
 {
-    public sealed class TriggerVolumeBehaviour : EntityBehaviour
+    public interface IUnityEntityComponent
     {
-        [Inject]
-        IEvent<TriggerVolumeEnterEvent> _entered;
-        [Inject]
-        IEvent<TriggerVolumeExitEvent> _exited;
+        IEntity Entity { get; set; }
+    }
+    public abstract class BaseUnityComponent : BaseBehaviour, IUnityEntityComponent
+    {
+       public IEntity Entity { get; set; }
+    }
+    public sealed class TriggerVolumeBehaviour : BaseUnityComponent
+    {
+        //[Inject] IEvent<TriggerVolumeEnterEvent> _entered;
+        //[Inject] IEvent<TriggerVolumeExitEvent> _exited;
         [ShowInInspector]
         readonly Dictionary<Entity, int> _enteredEntities = new();
-        public override void Install(IDiContainer container)
-        {
-            base.Install(container);
-            container.Event<TriggerVolumeEnterEvent>();
-            container.Event<TriggerVolumeExitEvent>();
-        }
+        //public override void Install(IDiContainer container)
+        //{
+        //    base.Install(container);
+        //    container.Event<TriggerVolumeEnterEvent>();
+        //    container.Event<TriggerVolumeExitEvent>();
+        //}
         private void OnTriggerEnter(Collider other)
             => Enter(other);
         private void OnTriggerExit(Collider other)
             => Exit(other);
-        [OnEnable]
-        void OnEnableEvent()
-        {
+		private void OnEnable()
+		{
             foreach (var entity in _enteredEntities)
-                _entered.Publish(new(entity.Key));
+                PublishEnter(entity.Key);
         }
-        [OnDisable]
-        void OnDisableEvent()
+		private void OnDisable()
         {
             foreach (var entity in _enteredEntities)
-                _exited.Publish(new(entity.Key));
+                PublishExit(entity.Key);
         }
         public void Enter(Collider collider)
         {
@@ -43,7 +47,7 @@ namespace BB
             var numEntrances = _enteredEntities.GetValueOrDefault(entity);
             _enteredEntities[entity] = numEntrances + 1;
             if (numEntrances == 0 && enabled)
-                _entered.Publish(new(entity));
+                PublishEnter(entity);
         }
         public void Exit(Collider collider)
         {
@@ -53,7 +57,15 @@ namespace BB
             var numEntrances = _enteredEntities.GetValueOrDefault(entity);
             _enteredEntities[entity] = numEntrances - 1;
             if (numEntrances == 1 && enabled)
-                _exited.Publish(new(entity));
+                PublishExit(entity);
+        }
+        private void PublishEnter(Entity entity)
+        {
+            Entity.Publish(new TriggerVolumeEnterEvent(entity));
+        }
+        private void PublishExit(Entity entity)
+        {
+            Entity.Publish(new TriggerVolumeExitEvent(entity));
         }
     }
 }

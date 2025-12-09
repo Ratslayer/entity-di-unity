@@ -5,26 +5,28 @@ public abstract class BaseRoot
 {
     public abstract void SetGameObject(GameObject go);
     protected GameObject GameObject { get; set; }
+    public T GetComponent<T>() => GameObject.GetComponent<T>();
+
     #region Events
-    [OnEnable]
-    void OnEnable()
+    [OnEvent]
+    void OnEnable(EntityEnabledEvent _)
     {
         if (GameObject)
             GameObject.SetActive(true);
     }
-    [OnDisable]
-    void OnDisable()
+    [OnEvent]
+    void OnDisable(EndDragEvent _)
     {
         if (GameObject)
             GameObject.SetActive(false);
     }
-    [OnDespawn]
-    void OnDespawn()
+    [OnEvent]
+    void OnDespawn(EntityDespawnedEvent _)
     {
         if (!GameObject.TryGetComponent(out PooledGameObject pgo))
             return;
         SetGameObject(null);
-        pgo.ReturnToPool();
+        pgo.Despawn();
     }
 
     #endregion
@@ -32,7 +34,11 @@ public abstract class BaseRoot
 public sealed class Root2D : BaseRoot
 {
     public RectTransform Transform { get; private set; }
-
+    public Transform Parent
+    {
+        get => Transform.parent;
+        set => Transform.SetParent(value);
+    }
     public override void SetGameObject(GameObject go)
     {
         Transform = go.GetComponent<RectTransform>();

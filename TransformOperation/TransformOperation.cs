@@ -64,6 +64,7 @@ namespace BB
                 Rotation = Quaternion.LookRotation(value);
             }
         }
+        public bool DoNotDestroyOnLoad { get; init; }
         #endregion
         #region Constructors
         public TransformOperation(
@@ -78,6 +79,7 @@ namespace BB
             _scale = scale;
             _parent = parent;
             _usage = usage;
+            DoNotDestroyOnLoad = false;
         }
         #endregion
         #region Apply
@@ -86,7 +88,12 @@ namespace BB
             if (!t)
                 return;
             var transform = t._transform;
-            if (HasFlag(TransformOperationUsage.Parent))
+            if (DoNotDestroyOnLoad)
+            {
+                transform.SetParent(null);
+                Object.DontDestroyOnLoad(transform.gameObject);
+            }
+            else if (HasFlag(TransformOperationUsage.Parent))
                 transform.SetParent(_parent, true);
             if (HasFlag(TransformOperationUsage.Additive))
             {

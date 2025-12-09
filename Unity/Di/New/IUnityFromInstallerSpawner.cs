@@ -73,7 +73,7 @@ namespace BB.Di
         {
             var pool = new EntityPool();
             var injector = CreateInjector(context);
-            var factory = new EntityFactory(pool, injector);
+            var factory = new EntityFactory(pool, injector, context.Installer);
             return new EntitySpawnData
             {
                 Pool = pool,
