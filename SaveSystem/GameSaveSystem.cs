@@ -103,7 +103,7 @@ namespace BB
                     ? asset.AssetLoadKey : string.Empty;
                 var components = PooledList<EntityComponentSaveData>.GetPooled();
                 foreach (var element in details.GetElements())
-                    if (element.DiComponent is ISerializableComponent comp)
+                    if (element.Instance is ISerializableComponent comp)
                     {
                         var serializer = comp.GetSerializer();
                         var data = serializer.Serialize(comp);

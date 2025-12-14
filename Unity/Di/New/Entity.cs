@@ -49,20 +49,7 @@ namespace BB
 
             return entity;
         }
-        public static Entity Spawn(in SpawnEntityFromPrefab3DContext context)
-        {
-            var spawner = World.Require<IUnityFromPrefabSpawner>();
-            var entity = spawner.Spawn(new IUnityFromPrefabSpawner.Context3D()
-            {
-                Prefab = context.Prefab.Object,
-                Parent = context.Parent,
-                Operation = context.Transform ?? default
-            });
 
-            RegisterIfSerializable(entity, context.SerializationName);
-
-            return entity;
-        }
         public static Entity Spawn(in SpawnEntityFromInstaller2DContext context)
         {
             var spawner = World.Require<IUnityFromInstallerSpawner>();
@@ -78,6 +65,21 @@ namespace BB
 
             return entity;
         }
+        public static Entity Spawn(in SpawnEntityFromPrefab3DContext context)
+        {
+            var spawner = World.Require<IUnityFromPrefabSpawner>();
+            var entity = spawner.Spawn(new IUnityFromPrefabSpawner.Context3D()
+            {
+                Prefab = context.Prefab.Object,
+                Parent = context.Parent,
+                Operation = context.Transform ?? default,
+                DoNotInstantiate = context.DoNotInstantiate
+            });
+
+            RegisterIfSerializable(entity, context.SerializationName);
+
+            return entity;
+        }
         public static Entity Spawn(in SpawnEntityFromPrefab2DContext context)
         {
             var spawner = World.Require<IUnityFromPrefabSpawner>();
@@ -85,7 +87,8 @@ namespace BB
             {
                 Prefab = context.Prefab.Object,
                 Parent = context.Parent,
-                Operation = context.Transform ?? default
+                Operation = context.Transform ?? default,
+                DoNotInstantiate = context.DoNotInstantiate
             });
 
             RegisterIfSerializable(entity, context.SerializationName);

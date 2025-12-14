@@ -3,16 +3,52 @@ using System.Reflection;
 using UnityEngine;
 namespace BB.Di
 {
+    public sealed record EntityFactoryFromPrefab(
+        IEntityPool Pool,
+        IEntityInjector Injector,
+        IEntityInstaller Installer,
+        GameObject Prefab,
+        bool DoNotInstantiate)
+        : EntityFactory(Pool, Injector, Installer)
+    {
+        public override IEntity Create(in CreateEntityContext context)
+        {
+            var entity = base.Create(context);
+            GameObject instance;
+            if (DoNotInstantiate)
+                instance = Prefab;
+            else
+            {
+                Prefab.SetActive(false);
+                instance = UnityEngine.Object.Instantiate(Prefab);
+                Prefab.SetActive(true);
+            }
+
+            var gameObjectWrapper = ((IFullEntity)entity).GetComponentData(new()
+            {
+                ContractType = typeof(GameObjectWrapper),
+                RequestingType = GetType(),
+                Init = true
+            });
+            ((GameObjectWrapper)gameObjectWrapper.Instance).GameObject = instance;
+
+            return entity;
+        }
+    }
+    public sealed class GameObjectWrapper
+    {
+        public GameObject GameObject { get; set; }
+    }
     public sealed class ComponentDiComponent : BaseDiComponent
     {
         public ComponentDiComponent(in DiComponentContext context) : base(context)
         {
         }
 
-        public override object Create(in DiComponentCreateContext context)
+        public override object Create(IEntity entity)
         {
-            var entity = (UnityEntity)context.Entity;
-            var component = entity.Object.GetComponent(InstanceType);
+            var goWrapper = entity.Require<GameObjectWrapper>();
+            var component = goWrapper.GameObject.GetComponent(ContractType);
             return component;
         }
 
@@ -26,22 +62,25 @@ namespace BB.Di
         Entity Spawn(in Context2D context);
         public readonly struct Context3D
         {
-            public IEntityInstaller Installer => Prefab;
             public EntityGameObject3D Prefab { get; init; }
             public Entity? Parent { get; init; }
             public TransformOperation Operation { get; init; }
+            public bool DoNotInstantiate { get; init; }
         }
         public readonly struct Context2D
         {
             public EntityGameObject2D Prefab { get; init; }
             public Entity? Parent { get; init; }
             public TransformOperation2D Operation { get; init; }
+            public bool DoNotInstantiate { get; init; }
+
         }
         public readonly struct CommonContext : ISpawnContext
         {
             public IEntityInstaller Installer => Prefab;
             public BaseEntityInstallerGameObject Prefab { get; init; }
             public Entity? Parent { get; init; }
+            public bool DoNotInstantiate { get; init; }
         }
     }
 
@@ -54,6 +93,7 @@ namespace BB.Di
             {
                 Parent = context.Parent,
                 Prefab = context.Prefab,
+                DoNotInstantiate = context.DoNotInstantiate
             });
 
             var root = entity.Require<Root>();
@@ -69,6 +109,8 @@ namespace BB.Di
             {
                 Parent = context.Parent,
                 Prefab = context.Prefab,
+                DoNotInstantiate = context.DoNotInstantiate
+
             });
 
             var root = entity.Require<Root2D>();
@@ -77,68 +119,48 @@ namespace BB.Di
             entity.SetState(EntityState.Enabled);
             return entity.GetToken();
         }
-
-        protected override EntitySpawnData CreateNewData(in IUnityFromPrefabSpawner.CommonContext context)
-        {
-            var pool = new EntityPool();
-            var injector = CreateInjector(context);
-            var factory = new EntityFromPrefabFactory(pool, context.Installer, context.Prefab.gameObject);
-            return new EntitySpawnData
-            {
-                Pool = pool,
-                Injector = injector,
-                Installer = context.Installer,
-                Factory = factory
-            };
-        }
+        protected override IEntityFactory CreateFactory(in IUnityFromPrefabSpawner.CommonContext context, IEntityPool pool, IEntityInjector injector)
+            => new EntityFactoryFromPrefab(
+                pool,
+                injector,
+                context.Installer,
+                context.Prefab.gameObject,
+                context.DoNotInstantiate);
     }
-
-    public sealed record EntityFromPrefabFactory(
-        IEntityPool Pool,
-        IEntityInstaller Installer,
-        GameObject Prefab
-        ) : IEntityFactory
-    {
-        public IEntity Create(in CreateEntityContext context)
-        {
-            Prefab.SetActive(false);
-            var instance = UnityEngine.Object.Instantiate(Prefab);
-            Prefab.SetActive(true);
-
-            var entity = new UnityEntity(context.Name, Pool, Installer, instance);
-            var root = entity.Require<Root>();
-            root.SetGameObject(instance);
-            return entity;
-        }
-    }
-    public sealed record UnityEntity(string Name,
-        IEntityPool Pool,
-        IEntityInstaller Installer,
-        GameObject Object) : BaseEntity(Name, Pool, Installer);
     public abstract class BaseEntityInstallerGameObject
         : BaseEntityGameObject,
         IEntityBehaviour,
         IEntityInstaller
     {
         public string Name => name;
-
-
-        public abstract void Install(IDiContainer container);
+        public virtual void Install(IDiContainer container)
+        {
+            container.System<GameObjectWrapper>();
+        }
         public override void Despawn() => _entityRef.SetState(EntityState.Despawned);
+        private void Awake()
+        {
+            if (_entityRef is not null)
+                return;
+            _entityRef = SpawnEntity();
+        }
+        protected abstract IEntity SpawnEntity();
     }
     public sealed class EntityGameObject3D : BaseEntityInstallerGameObject
     {
         public override void Install(IDiContainer container)
         {
+            base.Install(container);
             container.System<Root>();
+            foreach (var comp in GetComponents<EntityBehaviour>())
+                comp.Install(container);
         }
-    }
-    public sealed class EntityGameObject2D : BaseEntityInstallerGameObject
-    {
-        public override void Install(IDiContainer container)
-        {
-            container.System<Root2D>();
-        }
+        protected override IEntity SpawnEntity()
+            => Entity.Spawn(new SpawnEntityFromPrefab3DContext
+            {
+                Prefab = this,
+                DoNotInstantiate = true
+            })._ref;
     }
     public static class UnityDiExtensions
     {
@@ -161,7 +183,7 @@ namespace BB.Di
         }
         bool _getAttributeRead = false;
         [Get]
-        BaseEntityInstallerGameObject _gameObject;
+        BaseEntityGameObject _gameObject;
         public Entity Entity => _gameObject.Entity;
 
         protected virtual void Awake()
@@ -199,12 +221,12 @@ namespace BB.Di
         [Get]
         public RectTransform Rt { get; private set; }
     }
-    public sealed record UnityEntity<TPrefab>(
-        string Name,
-        IEntityPool Pool,
-        IEntityInstaller Installer,
-        TPrefab Instance) : BaseEntity(Name, Pool, Installer)
-        where TPrefab : MonoBehaviour, IEntityInstaller;
+    //public sealed record UnityEntity<TPrefab>(
+    //    string Name,
+    //    IEntityPool Pool,
+    //    IEntityInstaller Installer,
+    //    TPrefab Instance) : BaseEntity(Name, Pool, Installer)
+    //    where TPrefab : MonoBehaviour, IEntityInstaller;
     public interface IUnityEntityPools3D
     {
         IUnityEntityPool3D GetPool(EntityGameObject3D prefab);

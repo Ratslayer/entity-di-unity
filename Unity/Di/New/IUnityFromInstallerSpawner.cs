@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace BB.Di
 {
@@ -69,19 +70,19 @@ namespace BB.Di
             return entity.GetToken();
         }
 
-        protected override EntitySpawnData CreateNewData(in IUnityFromInstallerSpawner.CommonContext context)
-        {
-            var pool = new EntityPool();
-            var injector = CreateInjector(context);
-            var factory = new EntityFactory(pool, injector, context.Installer);
-            return new EntitySpawnData
-            {
-                Pool = pool,
-                Injector = injector,
-                Installer = context.Installer,
-                Factory = factory
-            };
+        //protected override EntitySpawnData CreateNewData(in IUnityFromInstallerSpawner.CommonContext context)
+        //{
+        //    var pool = new EntityPool();
+        //    var injector = CreateInjector(context);
+        //    var factory = new EntityFactory(pool, injector, context.Installer);
+        //    return new EntitySpawnData
+        //    {
+        //        Pool = pool,
+        //        Injector = injector,
+        //        Installer = context.Installer,
+        //        Factory = factory
+        //    };
 
-        }
+        //}
     }
 }

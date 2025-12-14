@@ -1,6 +1,7 @@
 ﻿using BB.Di;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
@@ -9,7 +10,7 @@ namespace BB
 {
     public sealed class EntityBrowserWindow : EditorWindow
     {
-        const int MaxNumEntries = 10;
+        const int MaxNumEntries = 30;
         [MenuItem("Tools/BB/Entity Browser")]
         [Shortcut("Open Entity Browser Window", KeyCode.F2, ShortcutModifiers.Shift)]
         public static void ShowWindow()
@@ -115,13 +116,15 @@ namespace BB
                     Entity = entity
                 };
 
-                foreach (var element in details.GetElements())
+                var elements = details.GetElements();
+
+                foreach (var element in elements)
                 {
                     if (!Matches(element.ContractType.Name, searchData._componentName))
                         continue;
                     if (element.Instance is IEvent)
-                        entry._events.Add(element.Instance);
-                    else entry._components.Add(element.Instance);
+                        entry._events.Add(element);
+                    else entry._components.Add(element);
                 }
 
                 if (entry._components.Count > 0)
@@ -163,7 +166,7 @@ namespace BB
                 using var _ = LayoutUtils.Indent;
                 foreach (var comp in entry._components)
                 {
-                    switch (comp)
+                    switch (comp.Instance)
                     {
                         case IStackValue stack:
                             DrawFoldout(stack.CustomToString(), stack, () =>
@@ -178,8 +181,11 @@ namespace BB
                                 EditorBoardUtils.DrawBoard(board);
                             });
                             break;
+                        case null:
+                            EditorGUILayout.LabelField($"{comp.ContractType}:null");
+                            break;
                         default:
-                            EditorGUILayout.LabelField(comp.GetType().Name);
+                            EditorGUILayout.LabelField(comp.Instance.GetType().Name);
                             break;
                     }
                 }
@@ -189,7 +195,7 @@ namespace BB
                 EditorGUILayout.LabelField("Events:");
                 foreach (var e in entry._events)
                 {
-                    var name = e.GetType().GenericTypeArguments[0].Name;
+                    var name = e.Instance.GetType().GenericTypeArguments[0].Name;
                     EditorGUILayout.LabelField(name);
                 }
             }
@@ -224,8 +230,8 @@ namespace BB
         sealed class EntityEntry
         {
             public Entity Entity { get; init; }
-            public readonly List<object> _components = new();
-            public readonly List<object> _events = new();
+            public readonly List<EntityComponentData> _components = new();
+            public readonly List<EntityComponentData> _events = new();
         }
     }
 }

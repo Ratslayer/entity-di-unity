@@ -3,8 +3,11 @@ using BB.Di;
 using UnityEngine;
 public abstract class BaseRoot
 {
-    public abstract void SetGameObject(GameObject go);
-    protected GameObject GameObject { get; set; }
+    public virtual void SetGameObject(GameObject go)
+    {
+        GameObject = go;
+    }
+    protected GameObject GameObject { get; private set; }
     public T GetComponent<T>() => GameObject.GetComponent<T>();
 
     #region Events
@@ -15,7 +18,7 @@ public abstract class BaseRoot
             GameObject.SetActive(true);
     }
     [OnEvent]
-    void OnDisable(EndDragEvent _)
+    void OnDisable(EntityDisabledEvent _)
     {
         if (GameObject)
             GameObject.SetActive(false);
@@ -41,6 +44,7 @@ public sealed class Root2D : BaseRoot
     }
     public override void SetGameObject(GameObject go)
     {
+        base.SetGameObject(go);
         Transform = go.GetComponent<RectTransform>();
     }
 }
@@ -49,6 +53,7 @@ public sealed class Root : BaseRoot, ISerializableComponent
     public Transform Transform { get; private set; }
     public override void SetGameObject(GameObject go)
     {
+        base.SetGameObject(go);
         Transform = go.transform;
     }
     public IEntityComponentSerializer GetSerializer()

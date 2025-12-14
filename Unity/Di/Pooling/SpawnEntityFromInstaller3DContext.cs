@@ -26,6 +26,7 @@ namespace BB
         public TransformOperation? Transform { get; init; }
         public Entity? Parent { get; init; }
         public string SerializationName { get; init; }
+        public bool DoNotInstantiate { get; init; }
     }
     public readonly struct SpawnEntityFromPrefab2DContext
     {
@@ -33,13 +34,9 @@ namespace BB
         public TransformOperation2D? Transform { get; init; }
         public Entity? Parent { get; init; }
         public string SerializationName { get; init; }
+        public bool DoNotInstantiate { get; init; }
     }
-    public readonly struct SpawnEntityContext
-    {
-        public IEntityInstaller Installer { get; init; }
-        public Entity? Parent { get; init; }
-        public string SerializationName { get; init; }
-    }
+
     public readonly struct SpawnPrefab3DContext
     {
         public GameObject Prefab { get; init; }

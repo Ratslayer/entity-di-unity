@@ -30,6 +30,12 @@ namespace BB.Di
         //}
         ////run init on first scene load
         //static WorldUpdates _worldManager;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
+        static void Clear()
+        {
+            WorldBootstrap.ClearWorldEntities();
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Init()
         {
