@@ -32,6 +32,9 @@ namespace BB.Di
             });
             ((GameObjectWrapper)gameObjectWrapper.Instance).GameObject = instance;
 
+            if (instance.TryGetComponent(out BaseEntityGameObject gameObject))
+                gameObject.Init(entity);
+
             return entity;
         }
     }
@@ -137,6 +140,12 @@ namespace BB.Di
         {
             container.System<GameObjectWrapper>();
         }
+        public override void Init(IEntity entity)
+        {
+            base.Init(entity);
+            foreach (var comp in GetComponents<BaseEntityComponent>())
+                comp.Init();
+        }
         public override void Despawn() => _entityRef.SetState(EntityState.Despawned);
         private void Awake()
         {
@@ -185,21 +194,18 @@ namespace BB.Di
         [Get]
         BaseEntityGameObject _gameObject;
         public Entity Entity => _gameObject.Entity;
-
-        protected virtual void Awake()
-        {
-            ReadGetAttribute();
-        }
-        void ReadGetAttribute()
+        public void Init()
         {
             if (_getAttributeRead)
                 return;
             _getAttributeRead = true;
-            foreach (var info in ReflectionUtils.GetAllMembersWithAttribute<GetAttribute>(GetType()))
+            var members = ReflectionUtils.GetAllMembersWithAttribute<GetAttribute>(GetType());
+            foreach (var info in members)
                 switch (info)
                 {
                     case PropertyInfo prop:
-                        prop.SetValue(this, GetComponent(prop.PropertyType));
+                        if (prop.CanWrite)
+                            prop.SetValue(this, GetComponent(prop.PropertyType));
                         break;
                     case FieldInfo field:
                         field.SetValue(this, GetComponent(field.FieldType));

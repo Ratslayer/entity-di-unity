@@ -7,7 +7,7 @@ namespace BB.Di
     {
         protected IEntity _entityRef;
         public Entity Entity => _entityRef?.GetToken() ?? default;
-        public void Init(IEntity entity)
+        public virtual void Init(IEntity entity)
         {
             _entityRef = entity;
         }
