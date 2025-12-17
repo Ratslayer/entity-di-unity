@@ -39,10 +39,12 @@ namespace BB.Di
                 Installer = context.Installer,
                 Parent = context.Parent,
             });
-            var root = entity.Require<Root>();
-
             var instance = _prefabSpawnManager.GetDisabledInstance(context.Prefab);
-            root.SetGameObject(instance);
+            var gameObjectWrapper = entity.Require<GameObjectWrapper>();
+            gameObjectWrapper.GameObject = instance;
+
+            var root = entity.Require<Root>();
+            root.Init();
 
             context.Operation.Apply(root);
             instance.SetActive(true);
@@ -58,10 +60,13 @@ namespace BB.Di
                 Installer = context.Installer,
                 Parent = context.Parent,
             });
-            var root = entity.Require<Root2D>();
 
             var instance = _prefabSpawnManager.GetDisabledInstance(context.Prefab);
-            root.SetGameObject(instance);
+            var gameObjectWrapper = entity.Require<GameObjectWrapper>();
+            gameObjectWrapper.GameObject = instance;
+
+            var root = entity.Require<Root2D>();
+            root.Init();
 
             context.Operation.Apply(root);
             instance.SetActive(true);

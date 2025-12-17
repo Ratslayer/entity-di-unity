@@ -100,6 +100,7 @@ namespace BB.Di
             });
 
             var root = entity.Require<Root>();
+            root.Init();
             context.Operation.Apply(root);
 
             entity.SetState(EntityState.Enabled);
@@ -117,6 +118,7 @@ namespace BB.Di
             });
 
             var root = entity.Require<Root2D>();
+            root.Init();
             context.Operation.Apply(root);
 
             entity.SetState(EntityState.Enabled);

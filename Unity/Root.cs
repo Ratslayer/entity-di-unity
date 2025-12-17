@@ -3,11 +3,10 @@ using BB.Di;
 using UnityEngine;
 public abstract class BaseRoot
 {
-    public virtual void SetGameObject(GameObject go)
-    {
-        GameObject = go;
-    }
-    protected GameObject GameObject { get; private set; }
+    [Inject] GameObjectWrapper _gameObject;
+    public virtual void Init() { }
+    public virtual void Clear() { }
+    protected GameObject GameObject => _gameObject.GameObject;
     public T GetComponent<T>() => GameObject.GetComponent<T>();
 
     #region Events
@@ -28,7 +27,7 @@ public abstract class BaseRoot
     {
         if (!GameObject.TryGetComponent(out PooledGameObject pgo))
             return;
-        SetGameObject(null);
+        Clear();
         pgo.Despawn();
     }
 
@@ -42,20 +41,19 @@ public sealed class Root2D : BaseRoot
         get => Transform.parent;
         set => Transform.SetParent(value);
     }
-    public override void SetGameObject(GameObject go)
-    {
-        base.SetGameObject(go);
-        Transform = go.GetComponent<RectTransform>();
-    }
+	public override void Init()
+	{
+        Transform = GameObject.GetComponent<RectTransform>();
+	}
+	public override void Clear()
+	{
+        Transform = null;
+	}
 }
 public sealed class Root : BaseRoot, ISerializableComponent
 {
-    public Transform Transform { get; private set; }
-    public override void SetGameObject(GameObject go)
-    {
-        base.SetGameObject(go);
-        Transform = go.transform;
-    }
+    public Transform Transform => GameObject.transform;
+	
     public IEntityComponentSerializer GetSerializer()
         => RootSerializerV1.Default;
     public float Scale
