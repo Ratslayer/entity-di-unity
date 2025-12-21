@@ -29,7 +29,7 @@ namespace BB
 		}
 	}
 	[RequireComponent(typeof(Rigidbody))]
-	public sealed class RigidBodyBehaviour : EntityBehaviour
+	public sealed class RigidBodyBehaviour : EntityBehaviour3D
 	{
 		[Inject]
 		IEvent<CollisionEnterEvent> _enter;

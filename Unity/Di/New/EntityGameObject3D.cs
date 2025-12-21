@@ -163,7 +163,7 @@ namespace BB.Di
         {
             base.Install(container);
             container.System<Root>();
-            foreach (var comp in GetComponents<EntityBehaviour>())
+            foreach (var comp in GetComponents<EntityBehaviour3D>())
                 comp.Install(container);
         }
         protected override IEntity SpawnEntity()
@@ -220,7 +220,7 @@ namespace BB.Di
     public sealed class GetAttribute : Attribute { }
 
     [RequireComponent(typeof(EntityGameObject3D))]
-    public abstract class EntityBehaviour : BaseEntityComponent
+    public abstract class EntityBehaviour3D : BaseEntityComponent
     {
     }
     [RequireComponent(typeof(EntityGameObject2D))]

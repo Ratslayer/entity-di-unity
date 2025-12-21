@@ -2,6 +2,11 @@
 using UnityEngine;
 namespace BB
 {
+    public abstract class EntityChildComponent : BaseBehaviour
+    {
+        public BaseEntityGameObject EntityGameObject => GetComponentInParent<BaseEntityGameObject>();
+        public Entity Entity => EntityGameObject.Entity;
+    }
     public abstract class BaseGameInstallerAsset : InstallerAsset
     {
         public override void Install(IDiContainer container)
@@ -13,7 +18,7 @@ namespace BB
             container.System<IUnityFromPrefabSpawner, UnityFromPrefabSpawner>();
         }
     }
-	public abstract class BaseWorldInstallerAsset : InstallerAsset
+    public abstract class BaseWorldInstallerAsset : InstallerAsset
     {
         public override void Install(IDiContainer container)
         {
@@ -24,7 +29,7 @@ namespace BB
             container.System<IUnityFromInstallerSpawner, UnityFromInstallerSpawner>();
             container.System<IUnityFromPrefabSpawner, UnityFromPrefabSpawner>();
         }
-        sealed class BindUpdates:EntitySystem
+        sealed class BindUpdates : EntitySystem
         {
             [OnEvent]
             void OnCreate(EntityCreatedEvent _)

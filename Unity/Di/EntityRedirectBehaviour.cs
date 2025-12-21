@@ -4,5 +4,5 @@ using BB.Di;
 public sealed class EntityRedirectBehaviour : BaseBehaviour
 {
 	[Required]
-	public EntityBehaviour _redirectTo;
+	public EntityBehaviour3D _redirectTo;
 }

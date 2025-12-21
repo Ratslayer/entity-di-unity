@@ -65,7 +65,7 @@ namespace BB
         public EntityGameObject3D Object { get; init; }
         public static implicit operator EntityGameObject3DAdapter(EntityGameObject3D go)
             => new() { Object = go };
-        public static implicit operator EntityGameObject3DAdapter(EntityBehaviour go)
+        public static implicit operator EntityGameObject3DAdapter(EntityBehaviour3D go)
             => new() { Object = go.GetComponent<EntityGameObject3D>() };
     }
     public readonly struct EntityGameObject2DAdapter

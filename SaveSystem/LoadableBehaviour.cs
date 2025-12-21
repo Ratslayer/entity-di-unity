@@ -2,7 +2,7 @@
 
 namespace BB
 {
-    public abstract class LoadableBehaviour : EntityBehaviour
+    public abstract class LoadableBehaviour : EntityBehaviour3D
     {
         [Inject]
         ILoadableBehaviours _behaviours;
