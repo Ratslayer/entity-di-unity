@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace BB.Di
 {
@@ -9,17 +8,21 @@ namespace BB.Di
         Entity Spawn(in Context2D context);
         public readonly struct Context3D : ISpawnContext
         {
-            public IEntityInstaller Installer { get; init; }
+            public IEntityInstaller3D Installer { get; init; }
             public GameObject Prefab { get; init; }
             public Entity? Parent { get; init; }
             public TransformOperation Operation { get; init; }
+
+            IEntityInstaller ISpawnContext.Installer => Installer;
         }
         public readonly struct Context2D : ISpawnContext
         {
-            public IEntityInstaller Installer { get; init; }
+            public IEntityInstaller2D Installer { get; init; }
             public GameObject Prefab { get; init; }
             public Entity? Parent { get; init; }
             public TransformOperation2D Operation { get; init; }
+
+            IEntityInstaller ISpawnContext.Installer => Installer;
         }
         public readonly struct CommonContext : ISpawnContext
         {
@@ -27,67 +30,5 @@ namespace BB.Di
             public GameObject Prefab { get; init; }
             public Entity? Parent { get; init; }
         }
-    }
-    public sealed class UnityFromInstallerSpawner
-          : BaseEntitySpawnManager<IUnityFromInstallerSpawner.CommonContext>, IUnityFromInstallerSpawner
-    {
-        [Inject] IPrefabSpawnManager _prefabSpawnManager;
-        public Entity Spawn(in IUnityFromInstallerSpawner.Context3D context)
-        {
-            var entity = GetUnspawnedEntity(new()
-            {
-                Installer = context.Installer,
-                Parent = context.Parent,
-            });
-            var instance = _prefabSpawnManager.GetDisabledInstance(context.Prefab);
-            var gameObjectWrapper = entity.Require<GameObjectWrapper>();
-            gameObjectWrapper.GameObject = instance;
-
-            var root = entity.Require<Root>();
-            root.Init();
-
-            context.Operation.Apply(root);
-            instance.SetActive(true);
-
-            entity.SetState(EntityState.Enabled);
-            return entity.GetToken();
-        }
-
-        public Entity Spawn(in IUnityFromInstallerSpawner.Context2D context)
-        {
-            var entity = GetUnspawnedEntity(new()
-            {
-                Installer = context.Installer,
-                Parent = context.Parent,
-            });
-
-            var instance = _prefabSpawnManager.GetDisabledInstance(context.Prefab);
-            var gameObjectWrapper = entity.Require<GameObjectWrapper>();
-            gameObjectWrapper.GameObject = instance;
-
-            var root = entity.Require<Root2D>();
-            root.Init();
-
-            context.Operation.Apply(root);
-            instance.SetActive(true);
-
-            entity.SetState(EntityState.Enabled);
-            return entity.GetToken();
-        }
-
-        //protected override EntitySpawnData CreateNewData(in IUnityFromInstallerSpawner.CommonContext context)
-        //{
-        //    var pool = new EntityPool();
-        //    var injector = CreateInjector(context);
-        //    var factory = new EntityFactory(pool, injector, context.Installer);
-        //    return new EntitySpawnData
-        //    {
-        //        Pool = pool,
-        //        Injector = injector,
-        //        Installer = context.Installer,
-        //        Factory = factory
-        //    };
-
-        //}
     }
 }

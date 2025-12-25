@@ -44,6 +44,7 @@ namespace BB.Di
     }
     public sealed class ComponentDiComponent : BaseDiComponent
     {
+        public override bool AlwaysCreate => true;
         public ComponentDiComponent(in DiComponentContext context) : base(context)
         {
         }
@@ -57,8 +58,14 @@ namespace BB.Di
 
         public override bool Validate(IEntityInstaller installer) => true;
     }
-    public interface IEntityInstaller3D : IEntityInstaller { }
-    public interface IEntityInstaller2D : IEntityInstaller { }
+    public interface IEntityInstaller3D : IEntityInstaller
+    {
+        Transform Prefab { get; }
+    }
+    public interface IEntityInstaller2D : IEntityInstaller
+    {
+        RectTransform Prefab { get; }
+    }
     public interface IUnityFromPrefabSpawner
     {
         Entity Spawn(in Context3D context);
