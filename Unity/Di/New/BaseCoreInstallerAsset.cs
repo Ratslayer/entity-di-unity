@@ -18,7 +18,7 @@ namespace BB
             container.System<IUnityFromPrefabSpawner, UnityFromPrefabSpawner>();
         }
     }
-    public abstract class BaseWorldInstallerAsset : InstallerAsset
+    public abstract class BaseCoreInstallerAsset : InstallerAsset
     {
         public override void Install(IDiContainer container)
         {

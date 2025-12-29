@@ -24,6 +24,7 @@ namespace BB.Di
         }
         static void InitWorld()
         {
+            return;
             var editorWorld
                         = AssetDatabase.LoadAssetAtPath
                         <InstallerAsset>(InstallerPath);

@@ -39,7 +39,7 @@ namespace BB
             _entities.Clear();
             var entitiesQueue = new List<IEntity>()
             {
-                Application.isPlaying ? World.RootEntity : EditorWorld.Entity
+                Application.isPlaying ? WorldBootstrap.World.ParentEntity : EditorWorld.Entity
             };
 
             while (entitiesQueue.Count > 0)

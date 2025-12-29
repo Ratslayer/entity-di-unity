@@ -33,13 +33,13 @@ namespace BB.Di
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         static void Clear()
         {
-            WorldBootstrap.ClearWorldEntities();
+            WorldBootstrap.DestroyWorld();
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static void Init()
         {
-            WorldBootstrap.Init();
+            WorldBootstrap.SpawnWorld();
         }
     }
 }

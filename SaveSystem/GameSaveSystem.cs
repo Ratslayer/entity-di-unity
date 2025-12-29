@@ -42,11 +42,8 @@ namespace BB
         [Inject] ISerializedEntities _serializedEntities;
         public async UniTask SaveGame(SaveGameContext e)
         {
-            var worldEntity = World.GetWorldEntity();
-            var world = GetEntitySaveData(worldEntity);
-
-            var gameEntity = World.GetGameEntity();
-            var game = GetEntitySaveData(gameEntity);
+            var core = GetEntitySaveData(Core);
+            var game = GetEntitySaveData(Game);
 
             var scenes = PooledDictionary<Scene, List<EntitySaveData>>.GetPooled();
             var existingPaths = _serializedEntities.BuildExistingEntityPaths();
@@ -80,7 +77,7 @@ namespace BB
             var gameSaveData = new GameSaveData
             {
                 Version = 1,
-                World = world,
+                Core = core,
                 Game = game,
                 SceneSaveDatas = sceneDatas
             };
@@ -135,8 +132,8 @@ namespace BB
 
             var existingEntities = _serializedEntities.BuildExistingEntityPaths();
 
-            ApplySaveData(World.GetWorldEntity(), saveData.World);
-            ApplySaveData(World.GetGameEntity(), saveData.Game);
+            ApplySaveData(Core, saveData.Core);
+            ApplySaveData(Game, saveData.Game);
             foreach (var sceneData in saveData.SceneSaveDatas)
             {
                 var sceneIsLoaded = sceneData.SceneName == "DontDestroyOnLoad";
@@ -219,6 +216,8 @@ namespace BB
         }
         Dictionary<string, IEntityComponentSerializer> _serializers;
         string GetSavePath(string path) => $"Saves/{path}";
+        Entity Core => WorldBootstrap.World.Core.Entity.GetToken();
+        Entity Game => WorldBootstrap.World.Game.Entity.GetToken();
         readonly struct TempEntitySaveData
         {
             public Scene Scene { get; init; }
@@ -228,7 +227,7 @@ namespace BB
     public sealed class GameSaveData
     {
         public int Version { get; init; }
-        public EntitySaveData World { get; init; }
+        public EntitySaveData Core { get; init; }
         public EntitySaveData Game { get; init; }
         public List<SceneSaveData> SceneSaveDatas { get; init; }
     }

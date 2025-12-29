@@ -10,11 +10,11 @@ namespace BB
         {
             Log.BindLogger(new UnityLogger());
 
-            var worldInstaller = Resources.Load<BaseWorldInstallerAsset>(WorldInstaller);
+            var worldInstaller = Resources.Load<BaseCoreInstallerAsset>(WorldInstaller);
             if (!worldInstaller)
                 throw new DiException(
                     $"No {WorldInstaller} resource " +
-                    $"of type {typeof(BaseWorldInstallerAsset).FullName} found");
+                    $"of type {typeof(BaseCoreInstallerAsset).FullName} found");
 
             return new WorldSetupConfig
             {
