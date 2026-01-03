@@ -8,6 +8,7 @@ namespace BB
     public static class LayoutUtils
     {
         readonly static Dictionary<object, bool> _foldouts = new();
+        readonly static Dictionary<object, Vector2> _scrollPositions = new();
         public static HorizontalLayout Horizontal
         {
             get
@@ -23,6 +24,22 @@ namespace BB
                 EditorGUILayout.BeginVertical();
                 return new();
             }
+        }
+        public static ChangeCheckDisposable OnChange(Action action)
+        {
+            EditorGUI.BeginChangeCheck();
+            return new()
+            {
+                OnChange = action
+            };
+        }
+        public static ScrollLayout Scroll(object obj,
+            bool alwaysShowVertical = false,
+            bool alwaysShowHorizontal = false)
+        {
+            var scrollPosition = _scrollPositions.GetValueOrDefault(obj);
+            _scrollPositions[obj] = EditorGUILayout.BeginScrollView(scrollPosition);
+            return new();
         }
         public static GuiHorizontalLayout HorizontalBox(string name)
         {
@@ -123,6 +140,22 @@ namespace BB
         public void Dispose()
         {
             EditorGUIUtility.labelWidth = _labelWidth;
+        }
+    }
+    public readonly struct ScrollLayout : IDisposable
+    {
+        public void Dispose()
+        {
+            EditorGUILayout.EndScrollView();
+        }
+    }
+    public readonly struct ChangeCheckDisposable : IDisposable
+    {
+        public Action OnChange { get; init; }
+        public void Dispose()
+        {
+            if (EditorGUI.EndChangeCheck())
+                OnChange?.Invoke();
         }
     }
     public readonly struct VerticalLayout : IDisposable

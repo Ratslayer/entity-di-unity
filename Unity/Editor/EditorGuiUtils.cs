@@ -33,6 +33,10 @@ namespace BB
             if (GUILayout.Button(name, options))
                 action();
         }
+        public static void Toggle(string name, ref bool value)
+        {
+            value = GUILayout.Toggle(value, name, GUI.skin.button);
+        }
 
         public static void TextField(string name, ref string value, Action onChange, params GUILayoutOption[] options)
         {

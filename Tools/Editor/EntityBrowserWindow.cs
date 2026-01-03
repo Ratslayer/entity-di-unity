@@ -10,6 +10,13 @@ namespace BB
 {
     public sealed class EntityBrowserWindow : EditorWindow
     {
+        enum BrowserTag
+        {
+            Event,
+            Child,
+            Variable,
+            System,
+        }
         const int MaxNumEntries = 30;
         [MenuItem("Tools/BB/Entity Browser")]
         [Shortcut("Open Entity Browser Window", KeyCode.F2, ShortcutModifiers.Shift)]
@@ -20,6 +27,7 @@ namespace BB
 
         readonly List<Entity> _entities = new();
         readonly List<EntityEntry> _entries = new();
+        readonly List<BrowserTag> _tags = new();
         string _searchValue;
 
         private void OnGUI()
@@ -37,10 +45,10 @@ namespace BB
         void UpdateEntities()
         {
             _entities.Clear();
-            var entitiesQueue = new List<IEntity>()
-            {
-                Application.isPlaying ? WorldBootstrap.World.ParentEntity : EditorWorld.Entity
-            };
+            var rootEntity = Application.isPlaying ? WorldBootstrap.World.Core.Entity : EditorWorld.Entity;
+            if (rootEntity is null)
+                return;
+            var entitiesQueue = new List<IEntity>() { rootEntity };
 
             while (entitiesQueue.Count > 0)
             {
@@ -51,6 +59,8 @@ namespace BB
                 _entities.Add(entityRef.GetToken());
                 entitiesQueue.AddRange(entityRef.Children);
             }
+
+            _entities.SortByToString();
 
             UpdatedSearchedEntries();
         }
@@ -122,11 +132,27 @@ namespace BB
                 {
                     if (!Matches(element.ContractType.Name, searchData._componentName))
                         continue;
-                    if (element.Instance is IEvent)
-                        entry._events.Add(element);
-                    else entry._components.Add(element);
-                }
+                    var component = new Component
+                    {
+                        _component = element
+                    };
 
+                    if (HasTag<IEvent>(BrowserTag.Event)
+                        || HasTag<ChildEntityVariable>(BrowserTag.Child)
+                        || HasTag<IVariable>(BrowserTag.Variable)
+                        || HasTag<EntitySystem>(BrowserTag.System))
+                        entry._components.Add(component);
+
+                    bool HasTag<T>(BrowserTag tag)
+                    {
+                        if (_tags.Count == 0)
+                            return true;
+                        if (!typeof(T).IsAssignableFrom(element.ContractType))
+                            return false;
+                        return _tags.Contains(tag);
+                    }
+                }
+                entry._components.SortByToString();
                 if (entry._components.Count > 0)
                     _entries.Add(entry);
             }
@@ -151,8 +177,27 @@ namespace BB
         }
         void DrawEntries()
         {
-            var numEntries = Mathf.Min(_entries.Count, MaxNumEntries);
-            foreach (var i in numEntries)
+            using (LayoutUtils.Horizontal)
+            {
+                using var change = LayoutUtils.OnChange(UpdatedSearchedEntries);
+                var tags = new BrowserTag[]
+                {
+                    BrowserTag.Event,
+                    BrowserTag.Variable,
+                    BrowserTag.Child,
+                    BrowserTag.System
+                };
+                foreach (var tag in tags)
+                {
+                    var tagIsSelected = _tags.Contains(tag);
+                    EditorGuiUtils.Toggle(tag.ToString(), ref tagIsSelected);
+                    if (tagIsSelected)
+                        _tags.AddUnique(tag);
+                    else _tags.Remove(tag);
+                }
+            }
+            using var scroll = LayoutUtils.Scroll(this);
+            foreach (var i in _entries.Count)
             {
                 var entry = _entries[i];
                 if (entry._components.IsNullOrEmpty())
@@ -163,13 +208,14 @@ namespace BB
 
                 if (!EditorGuiUtils.Foldout($"{entry.Entity} [{entry._components.Count}]", entry.Entity))
                     continue;
-                using var _ = LayoutUtils.Indent;
-                foreach (var comp in entry._components)
+                using var indent = LayoutUtils.Indent;
+                foreach (var ec in entry._components)
                 {
+                    var comp = ec._component;
                     switch (comp.Instance)
                     {
                         case IStackValue stack:
-                            DrawFoldout(stack.CustomToString(), stack, () =>
+                            DrawFoldout(stack.ToString(), stack, () =>
                             {
                                 foreach (var value in stack.GetTypelessSourceValues())
                                     EditorGUILayout.LabelField(value.ToString());
@@ -181,22 +227,40 @@ namespace BB
                                 EditorBoardUtils.DrawBoard(board);
                             });
                             break;
-                        case null:
-                            EditorGUILayout.LabelField($"{comp.ContractType}:null");
+                        case IEvent e:
+                            if (e is not IEventHandlers h || h.Handlers.Count == 0)
+                            {
+                                DrawLabel(comp);
+                                continue;
+                            }
+                            DrawFoldout($"{comp} [{h.Handlers.Count}]", e, () =>
+                            {
+                                foreach (var h in h.Handlers)
+                                    EditorGUILayout.LabelField(h.ToString());
+                            });
+                            break;
+                        case ChildEntityVariable cevar:
+                            {
+                                if (cevar.Entity)
+                                {
+                                    using var l = LayoutUtils.Horizontal;
+                                    DrawLabel($"{comp}:{cevar.Installer.Name}");
+                                    EditorGuiUtils.Button("Select", () =>
+                                    {
+                                        _searchValue = cevar.Entity;
+                                        UpdatedSearchedEntries();
+                                    });
+                                }
+                                else DrawLabel(comp);
+                            }
+                            break;
+                        case IVariable variable:
+                            DrawLabel(variable);
                             break;
                         default:
-                            EditorGUILayout.LabelField(comp.Instance.GetType().Name);
+                            DrawLabel(comp);
                             break;
                     }
-                }
-
-                if (entry._events.Count == 0)
-                    continue;
-                EditorGUILayout.LabelField("Events:");
-                foreach (var e in entry._events)
-                {
-                    var name = e.Instance.GetType().GenericTypeArguments[0].Name;
-                    EditorGUILayout.LabelField(name);
                 }
             }
             void DrawFoldout(string name, object key, Action draw)
@@ -208,6 +272,10 @@ namespace BB
                 {
                     draw();
                 }
+            }
+            void DrawLabel(object obj)
+            {
+                EditorGUILayout.LabelField(obj.ToString());
             }
         }
 
@@ -230,8 +298,12 @@ namespace BB
         sealed class EntityEntry
         {
             public Entity Entity { get; init; }
-            public readonly List<EntityComponentData> _components = new();
-            public readonly List<EntityComponentData> _events = new();
+            public readonly List<Component> _components = new();
+        }
+        sealed class Component
+        {
+            public EntityComponentData _component;
+            public List<BrowserTag> _tags = new();
         }
     }
 }
