@@ -200,14 +200,25 @@ namespace BB
             foreach (var i in _entries.Count)
             {
                 var entry = _entries[i];
+                if (!entry.Entity)
+                    continue;
+
                 if (entry._components.IsNullOrEmpty())
                 {
                     EditorGUILayout.LabelField(entry.Entity);
                     continue;
                 }
 
-                if (!EditorGuiUtils.Foldout($"{entry.Entity} [{entry._components.Count}]", entry.Entity))
-                    continue;
+                using (LayoutUtils.Horizontal)
+                {
+                    var foldout = EditorGuiUtils.Foldout($"{entry.Entity} [{entry._components.Count}]", entry.Entity);
+                    if (entry.Entity._ref is IEntityDetails details)
+                        EditorGuiUtils.Button(
+                            "Installer",
+                            () => EditorUtils.Select(details.Installer));
+                    if (!foldout)
+                        continue;
+                }
                 using var indent = LayoutUtils.Indent;
                 foreach (var ec in entry._components)
                 {
