@@ -51,7 +51,10 @@ namespace BB.Di
             if (change is not PlayModeStateChange.EnteredEditMode)
                 return;
             EditorApplication.playModeStateChanged -= OnExitPlayMode;
-            _entity.SetState(EntityState.Destroyed);
+
+            WorldBootstrap.DestroyWorld();
+
+            _entity?.SetState(EntityState.Destroyed);
             InitWorld();
         }
 

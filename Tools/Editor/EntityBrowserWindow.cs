@@ -1,7 +1,6 @@
 ﻿using BB.Di;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
@@ -132,7 +131,7 @@ namespace BB
                 {
                     if (!Matches(element.ContractType.Name, searchData._componentName))
                         continue;
-                    var component = new Component
+                    var component = new EntityBrowserComponent
                     {
                         _component = element
                     };
@@ -160,6 +159,9 @@ namespace BB
             static bool Matches(string str, SearchValue search)
             {
                 if (string.IsNullOrWhiteSpace(search?._name))
+                    return true;
+
+                if (search._name.ToLower().Contains(str.ToLower()))
                     return true;
 
                 var capitalizedWords = StringExtensions.SplitByCapitalWords(str);
@@ -229,7 +231,7 @@ namespace BB
                             DrawFoldout(stack.ToString(), stack, () =>
                             {
                                 foreach (var value in stack.GetTypelessSourceValues())
-                                    EditorGUILayout.LabelField(value.ToString());
+                                    DrawLabel(value);
                             });
                             break;
                         case IBoard board:
@@ -286,7 +288,12 @@ namespace BB
             }
             void DrawLabel(object obj)
             {
-                EditorGUILayout.LabelField(obj.ToString());
+                var str = obj switch
+                {
+                    Component comp => comp.gameObject.name,
+                    _ => obj?.ToString()
+                };
+                EditorGUILayout.LabelField(str);
             }
         }
 
@@ -309,12 +316,11 @@ namespace BB
         sealed class EntityEntry
         {
             public Entity Entity { get; init; }
-            public readonly List<Component> _components = new();
+            public readonly List<EntityBrowserComponent> _components = new();
         }
-        sealed class Component
+        sealed class EntityBrowserComponent
         {
             public EntityComponentData _component;
-            public List<BrowserTag> _tags = new();
         }
     }
 }

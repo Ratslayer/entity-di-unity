@@ -65,7 +65,7 @@ namespace BB
         public EntityGameObject3D Object { get; init; }
         public static implicit operator EntityGameObject3DAdapter(EntityGameObject3D go)
             => new() { Object = go };
-        public static implicit operator EntityGameObject3DAdapter(EntityBehaviour3D go)
+        public static implicit operator EntityGameObject3DAdapter(EntityComponent3D go)
             => new() { Object = go.GetComponent<EntityGameObject3D>() };
     }
     public readonly struct EntityGameObject2DAdapter
@@ -73,7 +73,7 @@ namespace BB
         public EntityGameObject2D Object { get; init; }
         public static implicit operator EntityGameObject2DAdapter(EntityGameObject2D go)
             => new() { Object = go };
-        public static implicit operator EntityGameObject2DAdapter(EntityBehaviour2D go)
+        public static implicit operator EntityGameObject2DAdapter(EntityComponent2D go)
             => new() { Object = go.GetComponent<EntityGameObject2D>() };
     }
     //public Entity Spawn()

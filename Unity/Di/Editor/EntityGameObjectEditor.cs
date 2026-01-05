@@ -165,7 +165,7 @@ public static class EditorEntityUtils
 				element.Instance);
 			result.Add(data);
 			AddTag<IVariable>(Variable);
-			AddTag<EntityBehaviour3D>(Behaviour);
+			AddTag<EntityComponent3D>(Behaviour);
 			AddTag<IStackValue>(State);
 			bool isEvent = instanceType.GetInterfaces().Any(x =>
 				   x.IsGenericType &&

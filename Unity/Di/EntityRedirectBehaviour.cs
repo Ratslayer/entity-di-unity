@@ -1,8 +1,7 @@
-﻿using Sirenix.OdinInspector;
-using BB.Di;
-
-public sealed class EntityRedirectBehaviour : BaseBehaviour
+﻿namespace BB
 {
-	[Required]
-	public EntityBehaviour3D _redirectTo;
+    public sealed class EntityRedirectBehaviour : BaseBehaviour
+    {
+        public EntityComponent3D _redirectTo;
+    }
 }

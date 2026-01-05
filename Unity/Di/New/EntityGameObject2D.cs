@@ -6,7 +6,7 @@
         {
             base.Install(container);
             container.System<Root2D>();
-            foreach (var comp in GetComponents<EntityBehaviour2D>())
+            foreach (var comp in GetComponents<EntityComponent2D>())
                 comp.Install(container);
         }
         protected override IEntity SpawnEntity()

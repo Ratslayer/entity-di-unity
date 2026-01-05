@@ -65,6 +65,15 @@ namespace BB
             }
         }
         public bool DoNotDestroyOnLoad { get; init; }
+        public Transform CopyTransform
+        {
+            init
+            {
+                Position = value.position;
+                Rotation = value.rotation;
+                Scale = value.localScale;
+            }
+        }
         #endregion
         #region Constructors
         public TransformOperation(
