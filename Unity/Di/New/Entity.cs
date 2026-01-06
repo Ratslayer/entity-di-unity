@@ -1,4 +1,5 @@
 ﻿using BB.Di;
+using System;
 using UnityEngine;
 namespace BB
 {
@@ -15,7 +16,7 @@ namespace BB
         public static GameObject SpawnPrefab2D(in SpawnPrefab2DContext context)
         {
             var spawner = World.Require<IPrefabSpawnManager>();
-            var instance = spawner.GetDisabledInstance(context.Prefab.gameObject);
+            var instance = spawner.GetDisabledInstance(context.Prefab.Transform.gameObject);
             context.Transform?.Apply(instance);
             instance.SetActive(true);
             return instance;
@@ -60,6 +61,37 @@ namespace BB
                 Parent = context.Parent,
                 Operation = context.Transform ?? default
             });
+
+            RegisterIfSerializable(entity, context.SerializationName);
+
+            return entity;
+        }
+        public static Entity Spawn(in SpawnEntity2DContext context)
+        {
+            Entity entity;
+            if (context.Installer.Installer)
+            {
+                var spawner = World.Require<IUnityFromInstallerSpawner>();
+                entity = spawner.Spawn(new IUnityFromInstallerSpawner.Context2D()
+                {
+                    Installer = context.Installer.Installer,
+                    Prefab = context.Installer.Prefab.gameObject,
+                    Parent = context.Parent,
+                    Operation = context.Transform ?? default
+                });
+            }
+            else if (context.Installer.PrefabInstaller)
+            {
+                var spawner = World.Require<IUnityFromPrefabSpawner>();
+                entity = spawner.Spawn(new IUnityFromPrefabSpawner.Context2D()
+                {
+                    Prefab = context.Installer.PrefabInstaller,
+                    Parent = context.Parent,
+                    Operation = context.Transform ?? default,
+                    DoNotInstantiate = false
+                });
+            }
+            else throw new ArgumentNullException("Attempted to spawn entity with no installer or prefab");
 
             RegisterIfSerializable(entity, context.SerializationName);
 

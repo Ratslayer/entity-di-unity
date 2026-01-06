@@ -1,4 +1,5 @@
 ﻿using BB.Di;
+using TMPro;
 using UnityEngine;
 
 namespace BB
@@ -9,6 +10,13 @@ namespace BB
         public IEntityInstaller3D Installer { get; init; }
         public GameObject Prefab { get; init; }
         public TransformOperation? Transform { get; init; }
+        public Entity? Parent { get; init; }
+        public string SerializationName { get; init; }
+    }
+    public readonly struct SpawnEntity2DContext
+    {
+        public InstallerAdapter2D Installer { get; init; }
+        public TransformOperation2D? Transform { get; init; }
         public Entity? Parent { get; init; }
         public string SerializationName { get; init; }
     }
@@ -50,8 +58,16 @@ namespace BB
     }
     public readonly struct SpawnPrefab2DContext
     {
-        public RectTransform Prefab { get; init; }
+        public Prefab2DAdapter Prefab { get; init; }
         public TransformOperation2D? Transform { get; init; }
+    }
+    public readonly struct Prefab2DAdapter
+    {
+        public RectTransform Transform { get; init; }
+        public static implicit operator Prefab2DAdapter(RectTransform rt)
+            => new() { Transform = rt };
+        public static implicit operator Prefab2DAdapter(TextMeshProUGUI tmp)
+            => tmp.GetComponent<RectTransform>();
     }
     public readonly struct SpawnPrefab2DContext<T>
         where T : BaseBehaviour2D
