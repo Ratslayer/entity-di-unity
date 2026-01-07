@@ -2,8 +2,8 @@
 {
 	public interface ILoadableBehaviours
     {
-        void Add(LoadableBehaviour behaviour);
-        void Remove(LoadableBehaviour behaviour);
-        bool TryGet(string key, out LoadableBehaviour result);
+        void Add(LoadableComponent behaviour);
+        void Remove(LoadableComponent behaviour);
+        bool TryGet(string key, out LoadableComponent result);
     }
 }

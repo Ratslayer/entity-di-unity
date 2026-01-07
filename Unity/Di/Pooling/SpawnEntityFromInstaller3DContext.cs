@@ -51,7 +51,7 @@ namespace BB
         public TransformOperation? Transform { get; init; }
     }
     public readonly struct SpawnPrefab3DContext<T>
-        where T : BaseBehaviour
+        where T : BaseComponent
     {
         public T Prefab { get; init; }
         public TransformOperation? Transform { get; init; }

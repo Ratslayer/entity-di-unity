@@ -22,7 +22,7 @@ namespace BB
             return instance;
         }
         public static T SpawnPrefab3D<T>(in SpawnPrefab3DContext<T> context)
-            where T : BaseBehaviour
+            where T : BaseComponent
             => SpawnPrefab3D(new()
             {
                 Prefab = context.Prefab.gameObject,

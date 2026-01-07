@@ -37,8 +37,12 @@
             entity.SetState(EntityState.Enabled);
             return entity.GetToken();
         }
-        protected override IEntityFactory CreateFactory(in IUnityFromPrefabSpawner.CommonContext context, IEntityPool pool, IEntityInjector injector)
+        protected override IEntityFactory CreateFactory(
+            in IUnityFromPrefabSpawner.CommonContext context,
+            IEntityPool pool,
+            IEntityInjector injector)
             => new EntityFactoryFromPrefab(
+                World,
                 pool,
                 injector,
                 context.Installer,

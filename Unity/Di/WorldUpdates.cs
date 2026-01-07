@@ -2,7 +2,7 @@
 using BB;
 using BB.Di;
 using UnityEngine;
-public sealed class WorldUpdates : BaseBehaviour
+public sealed class WorldUpdates : BaseComponent
 {
     IEvent<UpdateEvent> _update;
     IEvent<LateUpdateEvent> _lateUpdate;

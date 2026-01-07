@@ -2,7 +2,7 @@
 
 namespace BB
 {
-	public abstract class BaseEntityGameObject : BaseBehaviour
+	public abstract class BaseEntityGameObject : BaseComponent
     {
         protected IEntity _entityRef;
         public Entity Entity => _entityRef?.GetToken() ?? default;

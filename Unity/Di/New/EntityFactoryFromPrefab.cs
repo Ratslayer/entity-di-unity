@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
 namespace BB.Di
 {
-	public sealed record EntityFactoryFromPrefab(
+    public sealed record EntityFactoryFromPrefab(
+        WorldSetup World,
         IEntityPool Pool,
         IEntityInjector Injector,
         IEntityInstaller Installer,
         GameObject Prefab,
         bool DoNotInstantiate)
-        : EntityFactory(Pool, Injector, Installer)
+        : EntityFactory(World, Pool, Injector, Installer)
     {
         public override IEntity Create(in CreateEntityContext context)
         {

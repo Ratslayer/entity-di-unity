@@ -1,3 +1,3 @@
-﻿public sealed class CoroutineManager : BaseBehaviour
+﻿public sealed class CoroutineManager : BaseComponent
 {
 }

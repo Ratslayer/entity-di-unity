@@ -4,22 +4,22 @@ namespace BB
 {
 	public sealed class WorldInitializer : IWorldInitializer
     {
-        const string WorldInstaller = "World";
+        const string CoreInstaller = "Core";
 
         public WorldSetupConfig Init()
         {
             Log.BindLogger(new UnityLogger());
 
-            var worldInstaller = Resources.Load<BaseCoreInstallerAsset>(WorldInstaller);
-            if (!worldInstaller)
+            var coreInstaller = Resources.Load<BaseCoreInstallerAsset>(CoreInstaller);
+            if (!coreInstaller)
                 throw new DiException(
-                    $"No {WorldInstaller} resource " +
+                    $"No {CoreInstaller} resource " +
                     $"of type {typeof(BaseCoreInstallerAsset).FullName} found");
 
             return new WorldSetupConfig
             {
                 AdditionalInstaller = new UnityAdditionalInstaller(),
-                WorldInstaller = worldInstaller,
+                CoreInstaller = coreInstaller,
                 ForcedDinamicTypes = new[] { typeof(IBoard), typeof(IEvent<IBoard>) }
             };
         }

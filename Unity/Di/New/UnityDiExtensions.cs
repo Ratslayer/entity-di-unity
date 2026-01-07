@@ -1,7 +1,7 @@
 ﻿using System;
 namespace BB.Di
 {
-	public static class UnityDiExtensions
+    public static class UnityDiExtensions
     {
         public static void Component<T>(this IDiContainer container)
             => container.Component(typeof(T));
@@ -9,6 +9,7 @@ namespace BB.Di
         {
             container.AddComponent(new ComponentDiComponent(new()
             {
+                World = container.World,
                 ContractType = type,
                 InstanceType = type,
             }));

@@ -3,7 +3,7 @@ using Sirenix.OdinInspector;
 using System;
 using BB;
 [HideMonoScript]
-public abstract class BaseBehaviour : MonoBehaviour, IDisposable
+public abstract class BaseComponent : MonoBehaviour, IDisposable
 {
     public void Dispose()
     {
@@ -21,10 +21,14 @@ public static class EditorComponentExtensions
 #endif
     }
 #if UNITY_EDITOR
-    public static void Undo(this UnityEngine.Object obj, string message)
+    public static void Undo(this UnityEngine.Object obj, string message = null)
     {
         UnityEditor.Undo.RecordObject(obj, message);
         obj.SetDirty();
+    }
+    public static void UndoCreation(this UnityEngine.Object obj, string message = null)
+    {
+        UnityEditor.Undo.RegisterCreatedObjectUndo(obj, message);
     }
 #endif
 }

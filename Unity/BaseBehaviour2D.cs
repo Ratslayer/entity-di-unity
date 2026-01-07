@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public abstract class BaseBehaviour2D : BaseBehaviour
+public abstract class BaseBehaviour2D : BaseComponent
 {
 	RectTransform _rt;
 	public RectTransform RT

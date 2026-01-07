@@ -8,7 +8,7 @@ namespace BB
     {
         IEntity Entity { get; set; }
     }
-    public abstract class BaseUnityComponent : BaseBehaviour, IUnityEntityComponent
+    public abstract class BaseUnityComponent : BaseComponent, IUnityEntityComponent
     {
        public IEntity Entity { get; set; }
     }

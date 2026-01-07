@@ -41,15 +41,21 @@ namespace BB
             _scrollPositions[obj] = EditorGUILayout.BeginScrollView(scrollPosition);
             return new();
         }
-        public static GuiHorizontalLayout HorizontalBox(string name)
+        public static GuiHorizontalLayout HorizontalBox
         {
-            GUILayout.BeginHorizontal(name, "window");
-            return new();
+            get
+            {
+                GUILayout.BeginHorizontal("box");
+                return new();
+            }
         }
-        public static GuiVerticalLayout VerticalBox(string name)
+        public static GuiVerticalLayout VerticalBox
         {
-            GUILayout.BeginVertical(name, "window");
-            return new();
+            get
+            {
+                GUILayout.BeginVertical("box");
+                return new();
+            }
         }
         public static RestoreEditorWidth LabelWidth(float label)
         {

@@ -2,7 +2,7 @@
 using System.Reflection;
 namespace BB
 {
-	public abstract class BaseEntityComponent : BaseBehaviour, IEntityProvider, IEntityBehaviour
+	public abstract class BaseEntityComponent : BaseComponent, IEntityProvider, IEntityBehaviour
     {
         public virtual void Install(IDiContainer container)
         {

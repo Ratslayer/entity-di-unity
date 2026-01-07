@@ -4,8 +4,8 @@ namespace BB
 {
     public sealed class LoadableBehaviours : ILoadableBehaviours
     {
-        readonly Dictionary<string, LoadableBehaviour> _behaviours = new();
-        public void Add(LoadableBehaviour behaviour)
+        readonly Dictionary<string, LoadableComponent> _behaviours = new();
+        public void Add(LoadableComponent behaviour)
         {
             var key = behaviour.Key;
             if (string.IsNullOrWhiteSpace(key))
@@ -24,7 +24,7 @@ namespace BB
             _behaviours.Add(behaviour.Key, behaviour);
         }
 
-        public void Remove(LoadableBehaviour behaviour)
+        public void Remove(LoadableComponent behaviour)
         {
             var key = behaviour.Key;
             if (string.IsNullOrWhiteSpace(key))
@@ -44,7 +44,7 @@ namespace BB
             _behaviours.Remove(behaviour.Key);
         }
 
-        public bool TryGet(string key, out LoadableBehaviour result)
+        public bool TryGet(string key, out LoadableComponent result)
         {
             var found = _behaviours.TryGetValue(key, out result);
             if (!found)

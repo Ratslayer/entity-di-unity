@@ -5,15 +5,15 @@ namespace BB.Di
 {
     public static class EditorWorld
     {
-        const string InstallerPath = "Assets/0Game/World/EditorWorld.asset";
-        static IEntity _entity;
+        const string InstallerPath = "Assets/0Game/World/EditorCore.asset";
+        static WorldSetup _worldSetup;
         public static IEntity Entity
         {
             get
             {
-                if (_entity == null)
+                if (_worldSetup == null)
                     InitWorld();
-                return _entity;
+                return _worldSetup.Core.Entity;
             }
         }
         public static T Get<T>()
@@ -24,20 +24,16 @@ namespace BB.Di
         }
         static void InitWorld()
         {
-            return;
-            var editorWorld
-                        = AssetDatabase.LoadAssetAtPath
-                        <InstallerAsset>(InstallerPath);
+            _worldSetup?.ClearCore();
+
             Log.BindLogger(new UnityLogger());
-            //var impl = EntityImpl.CreateEntity(
-            //    "Editor",
-            //    null,
-            //    editorWorld,
-            //    null,
-            //    true);
-            //_entity = impl;
-            IEntity impl = null;
-            impl.SetState(EntityState.Enabled);
+
+            var editorWorld = AssetDatabase.LoadAssetAtPath<InstallerAsset>(InstallerPath);
+            _worldSetup = WorldSetup.CreateFromConfig(new WorldSetupConfig
+            {
+                AdditionalInstaller = new UnityAdditionalInstaller(),
+            });
+            _worldSetup.CreateCore(editorWorld);
         }
         [InitializeOnLoadMethod]
         static void CreateEntity()
@@ -54,7 +50,6 @@ namespace BB.Di
 
             WorldBootstrap.DestroyWorld();
 
-            _entity?.SetState(EntityState.Destroyed);
             InitWorld();
         }
 

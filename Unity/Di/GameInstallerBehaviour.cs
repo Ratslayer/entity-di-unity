@@ -3,7 +3,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 namespace BB
 {
-	public sealed class GameInstallerBehaviour : BaseBehaviour
+	public sealed class GameInstallerBehaviour : BaseComponent
 	{
 		[SerializeField, Required]
 		InstallerAsset _installer;

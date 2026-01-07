@@ -2,7 +2,7 @@
 using UnityEngine;
 namespace BB
 {
-    public abstract class EntityChildComponent : BaseBehaviour
+    public abstract class EntityChildComponent : BaseComponent
     {
         public BaseEntityGameObject EntityGameObject => GetComponentInParent<BaseEntityGameObject>();
         public Entity Entity => EntityGameObject.Entity;
