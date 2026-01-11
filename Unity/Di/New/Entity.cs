@@ -29,7 +29,7 @@ namespace BB
                 Transform = context.Transform,
             }).GetComponent<T>();
         public static T SpawnPrefab2D<T>(in SpawnPrefab2DContext<T> context)
-            where T : BaseBehaviour2D
+            where T : BaseComponent2D
             => SpawnPrefab2D(new()
             {
                 Prefab = context.Prefab.RT,

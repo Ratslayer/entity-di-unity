@@ -8,6 +8,7 @@ namespace BB
         public readonly Vector3 _scale;
         public readonly Quaternion _rotation;
         public readonly TransformOperationUsage _usage;
+
         #region Properties
         public Transform Parent
         {
@@ -65,13 +66,24 @@ namespace BB
             }
         }
         public bool DoNotDestroyOnLoad { get; init; }
-        public Transform CopyTransform
+        public TransformOperation CopySource
         {
             init
             {
-                Position = value.position;
-                Rotation = value.rotation;
-                Scale = value.localScale;
+                _parent = value._parent;
+                _position = value._position;
+                _scale = value._scale;
+                _rotation = value._rotation;
+                _usage = value._usage;
+            }
+        }
+        public TransformAdapter CopyTransform
+        {
+            init
+            {
+                Position = value._transform.position;
+                Rotation = value._transform.rotation;
+                Scale = value._transform.localScale;
             }
         }
         #endregion

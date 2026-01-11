@@ -1,4 +1,5 @@
 ﻿using BB.Di;
+using UnityEngine;
 
 namespace BB
 {
@@ -8,6 +9,8 @@ namespace BB
         IEntityInstaller
     {
         public string Name => name;
+        public override GameObject Prefab => null;
+        bool _selfSpawned;
         public virtual void Install(IDiContainer container)
         {
             container.System<GameObjectWrapper>();
@@ -23,8 +26,15 @@ namespace BB
         {
             if (_entityRef is not null)
                 return;
+            _selfSpawned = true;
             _entityRef = SpawnEntity();
         }
         protected abstract IEntity SpawnEntity();
-    }
+		private void OnDestroy()
+		{
+            if (_selfSpawned)
+                _entityRef.SetState(EntityState.Destroyed);
+            else _entityRef.SetState(EntityState.Despawned);
+		}
+	}
 }

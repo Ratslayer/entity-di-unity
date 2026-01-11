@@ -2,6 +2,7 @@
 
 namespace BB.Di
 {
+    
     public interface IUnityFromInstallerSpawner
     {
         Entity Spawn(in Context3D context);

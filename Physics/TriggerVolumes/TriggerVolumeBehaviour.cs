@@ -40,7 +40,7 @@ namespace BB
         }
         public void Enter(Collider collider)
         {
-            var entity = collider.GetEntity();
+            var entity = collider.GetEntityInParent();
             if (!entity)
                 return;
 
@@ -51,7 +51,7 @@ namespace BB
         }
         public void Exit(Collider collider)
         {
-            var entity = collider.GetEntity();
+            var entity = collider.GetEntityInParent();
             if (!entity)
                 return;
             var numEntrances = _enteredEntities.GetValueOrDefault(entity);

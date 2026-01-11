@@ -39,7 +39,7 @@ namespace BB
 		{
 			base.Install(container);
 			container.BindCollision(GetComponent<Rigidbody>());
-			container.System<IVelocityController, RigidBodyVelocityController>();
+			container.Service<IVelocityController, RigidBodyVelocityController>();
 		}
 		private void OnCollisionEnter(Collision collision)
 		{

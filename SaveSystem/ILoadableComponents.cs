@@ -1,6 +1,6 @@
 ﻿namespace BB
 {
-	public interface ILoadableBehaviours
+	public interface ILoadableComponents
     {
         void Add(LoadableComponent behaviour);
         void Remove(LoadableComponent behaviour);

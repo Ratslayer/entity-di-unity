@@ -71,6 +71,14 @@ namespace BB
             else go.Destroy();
         }
         public static void Despawn(this Component comp) => comp.gameObject.Despawn();
+        public static bool HasEntity(this Component comp, out Entity entity)
+        {
+            entity = default;
+            if (!comp.TryGetComponent(out BaseEntityGameObject bgo))
+                return false;
+            entity = bgo.Entity;
+            return entity;
+        }
     }
     public readonly struct GameObjectAdapter
     {
@@ -79,5 +87,7 @@ namespace BB
             => new() { Go = go };
         public static implicit operator GameObjectAdapter(Component comp)
             => new() { Go = comp.gameObject };
+        public static implicit operator GameObjectAdapter(BaseRoot root)
+            => root.GameObject;
     }
 }

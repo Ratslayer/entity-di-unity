@@ -39,7 +39,7 @@ namespace BB
 			if (entity.Has(out Root root))
 				root.Position = pos;
 		}
-		public static bool HasEntity(this GameObject obj, out Entity entity)
+		public static bool HasEntityInParent(this GameObject obj, out Entity entity)
 		{
 			entity = default;
 			if (!obj.HasEntityBehaviour(out var bh))
@@ -47,18 +47,17 @@ namespace BB
 			entity = bh.Entity;
 			return true;
 		}
-		public static bool HasEntity(this Component comp, out Entity entity)
+		public static bool HasEntityInParent(this Component comp, out Entity entity)
 		{
 			entity = default;
 			if (!comp)
 				return false;
-			return HasEntity(comp.gameObject, out entity);
+			return HasEntityInParent(comp.gameObject, out entity);
 		}
 
-
-		public static Entity GetEntity(this Component comp)
-			=> comp && comp.HasEntity(out var entity) ? entity : default;
-		public static Entity GetEntity(this GameObject go)
-			=> go && go.HasEntity(out var entity) ? entity : default;
+		public static Entity GetEntityInParent(this Component comp)
+			=> comp && comp.HasEntityInParent(out var entity) ? entity : default;
+		public static Entity GetEntityInParent(this GameObject go)
+			=> go && go.HasEntityInParent(out var entity) ? entity : default;
 	}
 }

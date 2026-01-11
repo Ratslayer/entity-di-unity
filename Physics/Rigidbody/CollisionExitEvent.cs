@@ -8,7 +8,7 @@ namespace BB
 		public CollisionExitEvent(Collision collision)
 		{
 			_collision = collision;
-			_collidedEntity = _collision.collider.GetEntity();
+			_collidedEntity = _collision.collider.GetEntityInParent();
 		}
 	}
 }

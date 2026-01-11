@@ -1,6 +1,7 @@
 ﻿using BB.Di;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.ShortcutManagement;
 using UnityEngine;
@@ -217,7 +218,8 @@ namespace BB
                     if (entry.Entity._ref is IEntityDetails details)
                         EditorGuiUtils.Button(
                             "Installer",
-                            () => EditorUtils.Select(details.Installer));
+                            () => EditorUtils.Select(details.Installer),
+                            GUILayout.Width(100));
                     if (!foldout)
                         continue;
                 }
@@ -228,11 +230,18 @@ namespace BB
                     switch (comp.Instance)
                     {
                         case IStackValue stack:
-                            DrawFoldout(stack.ToString(), stack, () =>
-                            {
-                                foreach (var value in stack.GetTypelessSourceValues())
-                                    DrawLabel(value);
-                            });
+                            var topValue = stack.GetTypelessSourceValues().FirstOrDefault().Value;
+                            EditorGuiUtils.Foldout($"{stack.GetType().Name}:{GetLabel(topValue)}", stack,
+                                () =>
+                                {
+                                    foreach (var value in stack.GetTypelessSourceValues())
+                                        using (LayoutUtils.Horizontal)
+                                        {
+                                            DrawLabel(value.Value);
+                                            SelectObjButton(value.Value);
+                                        }
+                                },
+                                () => SelectObjButton(topValue));
                             break;
                         case IBoard board:
                             DrawFoldout(board.GetType().Name, board, () =>
@@ -287,13 +296,21 @@ namespace BB
                 }
             }
             void DrawLabel(object obj)
-            {
-                var str = obj switch
+                => EditorGUILayout.LabelField(GetLabel(obj));
+            string GetLabel(object obj)
+                => obj switch
                 {
                     Component comp => comp.gameObject.name,
-                    _ => obj?.ToString()
+                    null => "NULL",
+                    _ => obj.ToString()
                 };
-                EditorGUILayout.LabelField(str);
+            void SelectObjButton(object obj)
+            {
+                if (obj is UnityEngine.Object uObj)
+                    EditorGuiUtils.Button(
+                        "Select",
+                        () => Selection.activeObject = uObj,
+                        GUILayout.Width(100));
             }
         }
 

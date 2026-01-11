@@ -9,6 +9,8 @@ namespace BB
         public GameObject GetDisabledInstance(GameObject prefab)
         {
             var pool = _pools.GetOrCreate(prefab);
+            pool.Prefab = prefab;
+
             var instance = pool.GetDisabledInstance();
             if (!instance)
             {
@@ -21,6 +23,7 @@ namespace BB
         }
         sealed class PrefabPool : IPrefabPool
         {
+            public GameObject Prefab { get; set; }
             readonly List<PooledGameObject> _disabledInstances = new();
             ulong _instanceCount;
             public ulong GetNextId => ++_instanceCount;

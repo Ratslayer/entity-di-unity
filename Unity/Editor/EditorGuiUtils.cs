@@ -60,5 +60,22 @@ namespace BB
             _foldouts[obj] = newFoldout;
             return newFoldout;
         }
+        public static void Foldout(string name, object key, Action draw, Action foldoutLineDraw = null)
+        {
+            var foldout = false;
+            using (LayoutUtils.Horizontal)
+            {
+                foldout = Foldout(name, key);
+                foldoutLineDraw?.Invoke();
+            }
+
+            if (!foldout)
+                return;
+
+            using (LayoutUtils.Indent)
+            {
+                draw();
+            }
+        }
     }
 }

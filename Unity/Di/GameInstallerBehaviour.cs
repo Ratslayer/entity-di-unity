@@ -6,7 +6,7 @@ namespace BB
 	public sealed class GameInstallerBehaviour : BaseComponent
 	{
 		[SerializeField, Required]
-		InstallerAsset _installer;
+		BaseGameInstallerAsset _installer;
 		private void Awake()
 		{
 			if (!_installer
@@ -14,18 +14,10 @@ namespace BB
 				|| loaded.Value)
 				return;
 			loaded.Value = true;
-			World.SetGame(_installer);
-			StartGame().Forget();
-			
-			static async UniTaskVoid StartGame()
-			{
-				await UniTask.NextFrame();
-                World.Publish<BeforeLevelSpawnEvent>();
-                await UniTask.NextFrame();
-                World.Publish<AfterLevelSpawnEvent>();
-                await UniTask.NextFrame();
-                World.Publish<TryStartGameEvent>();
-            }
+			World
+				.Require<IGameManager>()
+				.StartGame(new() { Installer = _installer })
+				.Forget();
 		}
 	}
 	public sealed class GameLoadedFromScene : Variable<GameLoadedFromScene, bool> { }

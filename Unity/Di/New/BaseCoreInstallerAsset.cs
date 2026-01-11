@@ -12,10 +12,10 @@ namespace BB
         public override void Install(IDiContainer container)
         {
             base.Install(container);
-            container.System<IEntitySpawnManager, EntitySpawnManager>();
-            container.System<IPrefabSpawnManager, PrefabSpawnManager>();
-            container.System<IUnityFromInstallerSpawner, UnityFromInstallerSpawner>();
-            container.System<IUnityFromPrefabSpawner, UnityFromPrefabSpawner>();
+            container.Service<IEntitySpawnManager, EntitySpawnManager>();
+            container.Service<IPrefabSpawnManager, PrefabSpawnManager>();
+            container.Service<IUnityFromInstallerSpawner, UnityFromInstallerSpawner>();
+            container.Service<IUnityFromPrefabSpawner, UnityFromPrefabSpawner>();
         }
     }
     public abstract class BaseCoreInstallerAsset : InstallerAsset
@@ -24,10 +24,10 @@ namespace BB
         {
             base.Install(container);
             container.System<BindUpdates>();
-            container.System<IEntitySpawnManager, EntitySpawnManager>();
-            container.System<IPrefabSpawnManager, PrefabSpawnManager>();
-            container.System<IUnityFromInstallerSpawner, UnityFromInstallerSpawner>();
-            container.System<IUnityFromPrefabSpawner, UnityFromPrefabSpawner>();
+            container.Service<IEntitySpawnManager, EntitySpawnManager>();
+            container.Service<IPrefabSpawnManager, PrefabSpawnManager>();
+            container.Service<IUnityFromInstallerSpawner, UnityFromInstallerSpawner>();
+            container.Service<IUnityFromPrefabSpawner, UnityFromPrefabSpawner>();
         }
         sealed class BindUpdates : EntitySystem
         {

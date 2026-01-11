@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
 
 namespace BB.Di
 {
@@ -79,6 +78,17 @@ namespace BB.Di
 
             if (instance.TryGetComponent(out BaseEntityGameObject entityGameObject))
                 entityGameObject.Init(entity);
+        }
+        public static bool IsInstaller2D(this Entity entity, in Installer2DAdapter installer)
+        {
+            if (entity._ref is not IEntityDetails details)
+                return false;
+
+            if (details.Installer == installer.Installer)
+                return true;
+            if (details.Installer == installer.PrefabInstaller)
+                return true;
+            return false;
         }
     }
 }

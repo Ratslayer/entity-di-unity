@@ -15,7 +15,7 @@ namespace BB
     }
     public readonly struct SpawnEntity2DContext
     {
-        public InstallerAdapter2D Installer { get; init; }
+        public Installer2DAdapter Installer { get; init; }
         public TransformOperation2D? Transform { get; init; }
         public Entity? Parent { get; init; }
         public string SerializationName { get; init; }
@@ -68,9 +68,20 @@ namespace BB
             => new() { Transform = rt };
         public static implicit operator Prefab2DAdapter(TextMeshProUGUI tmp)
             => tmp.GetComponent<RectTransform>();
+        public static implicit operator Prefab2DAdapter(CanvasGroup cg)
+            => cg.GetComponent<RectTransform>();
+        public static bool operator ==(Prefab2DAdapter adapter, GameObject obj)
+           => adapter.Transform && adapter.Transform.gameObject == obj;
+        public static bool operator !=(Prefab2DAdapter adapter, GameObject obj)
+           => !adapter.Transform || adapter.Transform.gameObject == obj;
+        public override int GetHashCode()
+            => Transform.GetHashCode();
+        public override bool Equals(object obj)
+            => obj is Prefab2DAdapter adapter 
+            && adapter.Transform == Transform;
     }
     public readonly struct SpawnPrefab2DContext<T>
-        where T : BaseBehaviour2D
+        where T : BaseComponent2D
     {
         public T Prefab { get; init; }
         public TransformOperation2D? Transform { get; init; }
