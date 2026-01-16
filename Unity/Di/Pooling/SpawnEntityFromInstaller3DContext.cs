@@ -70,6 +70,8 @@ namespace BB
             => tmp.GetComponent<RectTransform>();
         public static implicit operator Prefab2DAdapter(CanvasGroup cg)
             => cg.GetComponent<RectTransform>();
+        public static implicit operator Prefab2DAdapter(EntityComponent2D ec)
+            => ec.GetComponent<RectTransform>();
         public static bool operator ==(Prefab2DAdapter adapter, GameObject obj)
            => adapter.Transform && adapter.Transform.gameObject == obj;
         public static bool operator !=(Prefab2DAdapter adapter, GameObject obj)
@@ -77,7 +79,7 @@ namespace BB
         public override int GetHashCode()
             => Transform.GetHashCode();
         public override bool Equals(object obj)
-            => obj is Prefab2DAdapter adapter 
+            => obj is Prefab2DAdapter adapter
             && adapter.Transform == Transform;
     }
     public readonly struct SpawnPrefab2DContext<T>

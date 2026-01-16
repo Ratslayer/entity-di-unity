@@ -1,7 +1,16 @@
 ﻿using BB.Di;
+using System;
 using System.Reflection;
 namespace BB
 {
+    public sealed class OnClickAttribute : Attribute
+    {
+
+        public OnClickAttribute(string fieldOrPropertyName)
+        {
+
+        }
+    }
 	public abstract class BaseEntityComponent : BaseComponent, IEntityProvider, IEntityBehaviour
     {
         public virtual void Install(IDiContainer container)
@@ -17,8 +26,9 @@ namespace BB
             if (_getAttributeRead)
                 return;
             _getAttributeRead = true;
-            var members = ReflectionUtils.GetAllMembersWithAttribute<GetAttribute>(GetType());
-            foreach (var info in members)
+
+            var getMembers = ReflectionUtils.GetAllMembersWithAttribute<GetAttribute>(GetType());
+            foreach (var info in getMembers)
                 switch (info)
                 {
                     case PropertyInfo prop:
