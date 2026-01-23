@@ -10,6 +10,8 @@ namespace BB
         {
             _entityRef = null;
             gameObject.SetActive(false);
+            gameObject.transform.SetParent(_pool.Parent.transform);
+            gameObject.transform.ResetData();
             _pool.ReturnInstance(this);
         }
     }

@@ -72,6 +72,8 @@ namespace BB
             => cg.GetComponent<RectTransform>();
         public static implicit operator Prefab2DAdapter(EntityComponent2D ec)
             => ec.GetComponent<RectTransform>();
+        public static implicit operator Prefab2DAdapter(BaseComponent2D ec)
+           => ec.GetComponent<RectTransform>();
         public static bool operator ==(Prefab2DAdapter adapter, GameObject obj)
            => adapter.Transform && adapter.Transform.gameObject == obj;
         public static bool operator !=(Prefab2DAdapter adapter, GameObject obj)

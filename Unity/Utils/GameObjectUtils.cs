@@ -37,6 +37,9 @@ namespace BB
             if (component)
                 component.gameObject.Destroy();
         }
+        public static T AddComponent<T>(this Component component)
+            where T : Component
+            => component.gameObject.AddComponent<T>();
         public static void SetStaticRecursive(this GameObject go, bool value)
         {
             if (!go)

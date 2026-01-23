@@ -224,6 +224,7 @@ namespace BB
                         continue;
                 }
                 using var indent = LayoutUtils.Indent;
+                EditorGUILayout.LabelField($"Parent: {entry.Entity._ref.Parent.Name}");
                 foreach (var ec in entry._components)
                 {
                     var comp = ec._component;
