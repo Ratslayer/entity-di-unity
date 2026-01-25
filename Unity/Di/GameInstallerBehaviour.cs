@@ -6,14 +6,14 @@ namespace BB
     public sealed class GameInstallerBehaviour : BaseComponent
     {
         [SerializeField, Required]
-        BaseGameInstallerAsset _installer;
+        GameLevel _level;
         private void Awake()
         {
             World
                 .Require<IGameManager>()
                 .StartGame(new()
                 {
-                    Installer = _installer,
+                    Level = _level,
                     LoadedFromScene = true
                 })
                 .Forget();

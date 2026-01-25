@@ -9,9 +9,11 @@ namespace BB
     }
     public abstract class BaseGameInstallerAsset : InstallerAsset
     {
+        public abstract PlayerInstaller PlayerInstaller { get; }
         public override void Install(IDiContainer container)
         {
             base.Install(container);
+            container.Instance(PlayerInstaller);
             container.Service<IEntitySpawnManager, EntitySpawnManager>();
             container.Service<IPrefabSpawnManager, PrefabSpawnManager>();
             container.Service<IUnityFromInstallerSpawner, UnityFromInstallerSpawner>();
