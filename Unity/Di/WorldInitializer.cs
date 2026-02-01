@@ -2,13 +2,14 @@
 using BB.Di;
 namespace BB
 {
-	public sealed class WorldInitializer : IWorldInitializer
+    public sealed class WorldInitializer : IWorldInitializer
     {
         const string CoreInstaller = "Core";
 
         public WorldSetupConfig Init()
         {
-            Log.BindLogger(new UnityLogger());
+            var logger = new UnityLogger();
+            Log.BindLogger(logger);
 
             var coreInstaller = Resources.Load<BaseCoreInstallerAsset>(CoreInstaller);
             if (!coreInstaller)
@@ -20,7 +21,8 @@ namespace BB
             {
                 AdditionalInstaller = new UnityAdditionalInstaller(),
                 CoreInstaller = coreInstaller,
-                ForcedDinamicTypes = new[] { typeof(IBoard), typeof(IEvent<IBoard>) }
+                ForcedDinamicTypes = new[] { typeof(IBoard), typeof(IEvent<IBoard>) },
+                Logger = logger
             };
         }
     }

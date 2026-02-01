@@ -34,6 +34,7 @@ namespace BB
     {
         UniTask SaveGame(SaveGameContext e);
         UniTask LoadGame(LoadGameContext e);
+        string GetFullPath(string fileName);
     }
     public sealed class GameSaveSystem : IGameSaveSystem
     {
@@ -215,7 +216,11 @@ namespace BB
             }
         }
         Dictionary<string, IEntityComponentSerializer> _serializers;
-        string GetSavePath(string path) => $"Saves/{path}";
+        string GetSavePath(string path) => $"Saves/{path}.txt";
+
+        public string GetFullPath(string fileName)
+            => _fileSystem.GetFullPath(GetSavePath(fileName));
+
         Entity Core => WorldBootstrap.World.Core.Entity.GetToken();
         Entity Game => WorldBootstrap.World.Game.Entity.GetToken();
         readonly struct TempEntitySaveData

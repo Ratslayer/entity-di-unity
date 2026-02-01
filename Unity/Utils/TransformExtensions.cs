@@ -2,6 +2,28 @@
 using UnityEngine;
 namespace BB
 {
+    public static class RtExtensions
+    {
+        public static void StretchAsLine(this RectTransform rt, Vector2 from, Vector2 to, float width)
+        {
+            Vector2 direction = to - from;
+            float length = direction.magnitude;
+
+            if (length <= Mathf.Epsilon)
+                return;
+
+            // Position in the middle
+            Vector2 center = (from + to) * 0.5f;
+            rt.position = center;
+
+            // Rotation
+            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            rt.rotation = Quaternion.Euler(0f, 0f, angle);
+
+            // Size
+            rt.sizeDelta = new Vector2(length, width);
+        }
+    }
     public static class TransformExtensions
     {
         public static void DestroyAllChildren(this Transform t)

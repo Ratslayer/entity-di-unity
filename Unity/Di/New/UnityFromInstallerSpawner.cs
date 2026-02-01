@@ -84,9 +84,11 @@ namespace BB.Di
             if (entity._ref is not IEntityDetails details)
                 return false;
 
-            if (details.Installer as InstallerAsset2D == installer.Installer)
+            if (installer.Installer 
+                && details.Installer as InstallerAsset2D == installer.Installer)
                 return true;
-            if (details.Installer as EntityGameObject2D == installer.PrefabInstaller)
+            if (installer.PrefabInstaller 
+                && details.Installer as EntityGameObject2D == installer.PrefabInstaller)
                 return true;
             return false;
         }

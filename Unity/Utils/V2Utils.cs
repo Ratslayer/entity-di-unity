@@ -12,8 +12,3 @@ public static class V2Utils
 	public static Vector3 ToV3(this Vector2 v, Vector3 right, Vector3 up)
 		=> v.x * right + v.y * up;
 }
-public static class RotUtils
-{
-	public static Quaternion Forward(Vector3 dir)
-		=> Quaternion.FromToRotation(Vector3.forward, dir);
-}

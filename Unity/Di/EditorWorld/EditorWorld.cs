@@ -25,13 +25,14 @@ namespace BB.Di
         static void InitWorld()
         {
             _worldSetup?.ClearCore();
-
-            Log.BindLogger(new UnityLogger());
+            var logger = new UnityLogger();
+            Log.BindLogger(logger);
 
             var editorWorld = AssetDatabase.LoadAssetAtPath<InstallerAsset>(InstallerPath);
             _worldSetup = WorldSetup.CreateFromConfig(new WorldSetupConfig
             {
                 AdditionalInstaller = new UnityAdditionalInstaller(),
+                Logger = logger
             });
             _worldSetup.CreateCore(editorWorld);
         }

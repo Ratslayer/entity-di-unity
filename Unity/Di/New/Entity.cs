@@ -5,6 +5,12 @@ namespace BB
 {
     public readonly partial struct Entity
     {
+        public void LogInfo(string msg) => Log(msg, LogLevel.Info);
+        public void LogError(string msg) => Log(msg, LogLevel.Error);
+        void Log(string msg, LogLevel level)
+        {
+            _ref?.World.Logger.Log(msg, level);
+        }
         public static GameObject SpawnPrefab3D(in SpawnPrefab3DContext context)
         {
             var spawner = World.Require<IPrefabSpawnManager>();
