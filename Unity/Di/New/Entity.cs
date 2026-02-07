@@ -136,8 +136,7 @@ namespace BB
 
         private static void RegisterIfSerializable(Entity entity, string serializationName)
         {
-            if (!string.IsNullOrWhiteSpace(serializationName))
-                EntitySerializationUtils.RegisterAsSerializedEntity(entity, serializationName);
+            EntitySerializationUtils.RegisterAsSerializedEntity(entity, serializationName);
         }
     }
 }

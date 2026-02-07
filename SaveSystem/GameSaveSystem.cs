@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using System.Linq;
+using System.IO;
 
 namespace BB
 {
@@ -19,8 +20,9 @@ namespace BB
     }
     public readonly struct SerializableEntity
     {
-        public IEntity Entity { get; init; }
-        public string SerializedName { get; init; }
+        public Entity Entity { get; init; }
+        public string Path { get; init; }
+        public Scene Scene { get; init; }
     }
     public readonly struct SaveGameContext
     {
@@ -36,22 +38,20 @@ namespace BB
         UniTask LoadGame(LoadGameContext e);
         string GetFullPath(string fileName);
     }
-    public sealed class GameSaveSystem : IGameSaveSystem
+    public sealed class GameSaveSystem : EntitySystem, IGameSaveSystem
     {
         [Inject] ILoadableAssets _assets;
         [Inject] IFileSystem _fileSystem;
         [Inject] ISerializedEntities _serializedEntities;
         public async UniTask SaveGame(SaveGameContext e)
         {
-            var core = GetEntitySaveData(Core);
-            var game = GetEntitySaveData(Game);
-
             var scenes = PooledDictionary<Scene, List<EntitySaveData>>.GetPooled();
-            var existingPaths = _serializedEntities.BuildExistingEntityPaths();
-            foreach (var (path, entity) in existingPaths)
+
+            var entities = GetSerializableEntities(Core);
+            foreach (var ed in entities)
             {
-                var data = GetEntitySaveData(entity, path);
-                var scene = entity.Has(out Root root) ? root.Transform.gameObject.scene : default;
+                var data = GetEntitySaveData(ed.Entity, ed.Path);
+                var scene = ed.Entity.Has(out Root root) ? root.Transform.gameObject.scene : default;
                 if (!scenes.TryGetValue(scene, out var datas))
                 {
                     datas = new List<EntitySaveData>();
@@ -78,8 +78,6 @@ namespace BB
             var gameSaveData = new GameSaveData
             {
                 Version = 1,
-                Core = core,
-                Game = game,
                 SceneSaveDatas = sceneDatas
             };
 
@@ -93,14 +91,15 @@ namespace BB
 
 
             scenes.DisposeAndClear();
-            sceneDatas.DisposeAndClear();
+            sceneDatas.DisposeElementsAndClear();
             EntitySaveData GetEntitySaveData(Entity entity, string serializedPath = null)
             {
                 var details = (IEntityDetails)entity._ref;
                 var factoryName = details.Installer is ILoadableAsset asset
                     ? asset.AssetLoadKey : string.Empty;
                 var components = PooledList<EntityComponentSaveData>.GetPooled();
-                foreach (var element in details.GetElements())
+                var elements = details.GetElements();
+                foreach (var element in elements)
                     if (element.Instance is ISerializableComponent comp)
                     {
                         var serializer = comp.GetSerializer();
@@ -119,8 +118,55 @@ namespace BB
                     SaveDatas = components,
                 };
             }
-        }
+            void AddToSerialization(Entity entity, string path)
+            {
+                if (!entity)
+                    return;
+                if (string.IsNullOrWhiteSpace(entity._ref.SerializationName))
+                    return;
 
+                var newPath = Path.Join(path, entity._ref.SerializationName);
+
+                var data = GetEntitySaveData(entity, newPath);
+                var scene = entity.Has(out Root root) ? root.Transform.gameObject.scene : default;
+                if (!scenes.TryGetValue(scene, out var datas))
+                {
+                    datas = new List<EntitySaveData>();
+                    scenes.Add(scene, datas);
+                }
+                datas.Add(data);
+
+                foreach (var child in entity._ref.Children)
+                    AddToSerialization(child.GetToken(), newPath);
+            }
+        }
+        PooledList<SerializableEntity> GetSerializableEntities(Entity root)
+        {
+            var result = PooledList<SerializableEntity>.GetPooled();
+            AddSelfAndChildren(root, null);
+            return result;
+
+            void AddSelfAndChildren(Entity entity, string path)
+            {
+                if (!entity)
+                    return;
+                if (string.IsNullOrWhiteSpace(entity._ref.SerializationName))
+                    return;
+
+                var newPath = string.Join('/', path, entity._ref.SerializationName);
+                var scene = entity.Has(out Root root) ? root.Transform.gameObject.scene : default;
+                result.Add(new SerializableEntity
+                {
+                    Entity = entity,
+                    Scene = scene,
+                    Path = newPath
+                });
+
+                foreach (var child in entity._ref.Children)
+                    AddSelfAndChildren(child.GetToken(), newPath);
+            }
+
+        }
         public async UniTask LoadGame(LoadGameContext e)
         {
             InitSerializers();
@@ -130,29 +176,35 @@ namespace BB
             {
                 Path = path,
             });
-
-            var existingEntities = _serializedEntities.BuildExistingEntityPaths();
-
-            ApplySaveData(Core, saveData.Core);
-            ApplySaveData(Game, saveData.Game);
+            var entities = GetSerializableEntities(Core);
             foreach (var sceneData in saveData.SceneSaveDatas)
             {
-                var sceneIsLoaded = sceneData.SceneName == "DontDestroyOnLoad";
-                if (!sceneIsLoaded)
-                {
-                    var scene = SceneManager.GetSceneByName(sceneData.SceneName);
-                    sceneIsLoaded = scene.isLoaded;
-                }
-
-                if (!sceneIsLoaded)
-                    continue;
-
                 foreach (var data in sceneData.EntitySaveDatas)
                 {
-                    if (!existingEntities.TryGetValue(data.EntityPath, out var entity))
-                        return;
-                    ApplySaveData(entity, data);
+                    if (!entities.TryGetValue(e => e.Path == data.EntityPath, out var entity))
+                    {
+                        LogError($"No entity found with path '{data.EntityPath}'");
+                        continue;
+                    }
+
+                    ApplySaveData(entity.Entity, data);
                 }
+                //var sceneIsLoaded = sceneData.SceneName == "DontDestroyOnLoad";
+                //if (!sceneIsLoaded)
+                //{
+                //    var scene = SceneManager.GetSceneByName(sceneData.SceneName);
+                //    sceneIsLoaded = scene.isLoaded;
+                //}
+
+                //if (!sceneIsLoaded)
+                //    continue;
+
+                //foreach (var data in sceneData.EntitySaveDatas)
+                //{
+                //    //if (!existingEntities.TryGetValue(data.EntityPath, out var entity))
+                //    //    return;
+                //    //ApplySaveData(entity, data);
+                //}
             }
         }
         void ApplySaveData(Entity entity, EntitySaveData saveData)
@@ -232,8 +284,6 @@ namespace BB
     public sealed class GameSaveData
     {
         public int Version { get; init; }
-        public EntitySaveData Core { get; init; }
-        public EntitySaveData Game { get; init; }
         public List<SceneSaveData> SceneSaveDatas { get; init; }
     }
     public sealed class SceneSaveData
