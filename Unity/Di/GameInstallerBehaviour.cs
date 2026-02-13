@@ -1,24 +1,21 @@
-﻿using Cysharp.Threading.Tasks;
-using Sirenix.OdinInspector;
-using UnityEngine;
+﻿using BB.Di;
+
 namespace BB
 {
     public sealed class GameInstallerBehaviour : BaseComponent
     {
-        [SerializeField, Required]
-        GameLevel _level;
+        public BaseGameInstallerAsset _installer;
         private void Awake()
         {
+            if (WorldBootstrap.World.Game?.Entity is not null)
+                return;
             World
                 .Require<IGameManager>()
                 .StartGame(new()
                 {
-                    Level = _level,
-                    LoadedFromScene = true
-                })
-                .Forget();
+                    GameInstaller = _installer
+                });
         }
     }
     public sealed class GameLoadedAtRuntime : Variable<GameLoadedAtRuntime, bool> { }
-
 }

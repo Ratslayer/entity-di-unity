@@ -1,7 +1,9 @@
 ﻿namespace BB
 {
-	public interface ILoadableAssets
+    public interface ILoadableAssets
     {
-        bool HasAsset(string key, out BaseScriptableObject asset);
+        bool HasAssetKey(object asset, out string key);
+        bool HasAsset<T>(string key, out T asset)
+            where T : BaseScriptableObject, ILoadableAsset;
     }
 }

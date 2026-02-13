@@ -9,4 +9,9 @@ namespace BB
 			container.Instance(GetType(), this);
 		}
 	}
+    public abstract class LoadableInstallerAsset : InstallerAsset, ILoadableAsset
+    {
+		public string _assetLoadKey;
+        public string AssetLoadKey => _assetLoadKey;
+    }
 }

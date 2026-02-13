@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using System.Linq;
 using System.IO;
+using BB.Ui;
 
 namespace BB
 {
@@ -43,42 +44,58 @@ namespace BB
         [Inject] ILoadableAssets _assets;
         [Inject] IFileSystem _fileSystem;
         [Inject] ISerializedEntities _serializedEntities;
+        [Inject] ISceneManager _sceneManager;
+        [Inject] IGameManager _gameManager;
+
         public async UniTask SaveGame(SaveGameContext e)
         {
-            var scenes = PooledDictionary<Scene, List<EntitySaveData>>.GetPooled();
+            if (Game._ref is not IEntityDetails gameDetails
+                || !_assets.HasAssetKey(gameDetails.Installer, out var gameInstallerKey))
+            {
+                LogError($"Installer for Game entity is not registered as a loadable asset. Can't save game.");
+                return;
+            }
+
+            var noSceneDatas = new List<EntitySaveData>();
+
+            var openScenes = _sceneManager.GetAllOpenScenes();
+            var scenes = PooledDictionary<GameScene, List<EntitySaveData>>.GetPooled();
+            foreach (var openScene in openScenes)
+                scenes.Add(openScene, new());
 
             var entities = GetSerializableEntities(Core);
             foreach (var ed in entities)
             {
+                var datas = GetDataList(ed.Entity);
                 var data = GetEntitySaveData(ed.Entity, ed.Path);
-                var scene = ed.Entity.Has(out Root root) ? root.Transform.gameObject.scene : default;
-                if (!scenes.TryGetValue(scene, out var datas))
-                {
-                    datas = new List<EntitySaveData>();
-                    scenes.Add(scene, datas);
-                }
                 datas.Add(data);
             }
 
             await UniTask.NextFrame();
 
-            var sceneDatas = new List<SceneSaveData>();
+            var sceneDatas = new List<SceneSaveData>
+            {
+                new()
+                {
+                    EntitySaveDatas = noSceneDatas
+                }
+            };
 
             foreach (var kvp in scenes)
             {
-                var sceneName = kvp.Key.name;
+                var sceneName = kvp.Key;
                 sceneDatas.Add(new()
                 {
-                    SceneName = sceneName,
+                    SceneName = sceneName.SceneName,
                     EntitySaveDatas = kvp.Value
                 });
             }
 
-
             var gameSaveData = new GameSaveData
             {
                 Version = 1,
-                SceneSaveDatas = sceneDatas
+                SceneSaveDatas = sceneDatas,
+                GameInstaller = gameInstallerKey
             };
 
             var filePath = GetSavePath(e.FilePath);
@@ -88,7 +105,6 @@ namespace BB
                 Path = filePath,
                 Data = gameSaveData
             });
-
 
             scenes.DisposeAndClear();
             sceneDatas.DisposeElementsAndClear();
@@ -127,17 +143,100 @@ namespace BB
 
                 var newPath = Path.Join(path, entity._ref.SerializationName);
 
+                var datas = GetDataList(entity);
                 var data = GetEntitySaveData(entity, newPath);
-                var scene = entity.Has(out Root root) ? root.Transform.gameObject.scene : default;
-                if (!scenes.TryGetValue(scene, out var datas))
-                {
-                    datas = new List<EntitySaveData>();
-                    scenes.Add(scene, datas);
-                }
                 datas.Add(data);
 
                 foreach (var child in entity._ref.Children)
                     AddToSerialization(child.GetToken(), newPath);
+            }
+            List<EntitySaveData> GetDataList(Entity entity)
+            {
+                List<EntitySaveData> datas;
+
+                var scene = _sceneManager.GetSceneData(entity);
+                if (scene is not { } s || s.DoNotDestroyOnLoad)
+                    datas = noSceneDatas;
+                else if (!scenes.TryGetValue(s.Scene, out datas))
+                {
+                    datas = new List<EntitySaveData>();
+                    scenes.Add(s.Scene, datas);
+                }
+
+                return datas;
+            }
+        }
+        public async UniTask LoadGame(LoadGameContext e)
+        {
+            InitSerializers();
+            var path = GetSavePath(e.FilePath);
+
+            var saveData = await _fileSystem.Read<GameSaveData>(new()
+            {
+                Path = path,
+            });
+
+            if (!_assets.HasAsset(saveData.GameInstaller, out BaseGameInstallerAsset gameInstaller))
+            {
+                LogError($"No Game Installer found with key {saveData.GameInstaller}. Abandoning load game.");
+                return;
+            }
+
+            var scenes = new List<GameScene>();
+
+            foreach (var sceneSaveData in saveData.SceneSaveDatas)
+            {
+                if (string.IsNullOrEmpty(sceneSaveData.SceneName))
+                    continue;
+
+                var sceneData = _sceneManager.GetSceneData(sceneSaveData.SceneName);
+                if (sceneData?.Scene is not { } sceneAsset)
+                {
+                    LogError($"No Scene asset found with key {sceneSaveData.SceneName}");
+                    continue;
+                }
+
+                scenes.Add(sceneAsset);
+            }
+
+            if (scenes.Count == 0)
+            {
+                LogError($"No scenes found that can be loaded. Abandoning load game.");
+                return;
+            }
+
+            await _gameManager.EndGame(new()
+            {
+                ClearGameInstaller = true
+            });
+
+            await _gameManager.StartGame(new()
+            {
+                GameInstaller = gameInstaller,
+                Scenes = scenes,
+                AfterSceneLoad = ApplySaveDataToAll
+            });
+
+            //Entity._ref.World.CreateGame(gameInstaller);
+
+            //await _sceneManager.LoadScene(scenes[0].SceneName);
+
+            void ApplySaveDataToAll()
+            {
+                var entities = GetSerializableEntities(Core);
+                foreach (var sceneData in saveData.SceneSaveDatas)
+                {
+                    foreach (var data in sceneData.EntitySaveDatas)
+                    {
+                        if (!entities.TryGetValue(e => e.Path == data.EntityPath, out var entity))
+                        {
+                            LogError($"No entity found with path '{data.EntityPath}'");
+                            continue;
+                        }
+
+                        ApplySaveData(entity.Entity, data);
+                    }
+                }
             }
         }
         PooledList<SerializableEntity> GetSerializableEntities(Entity root)
@@ -166,46 +265,6 @@ namespace BB
                     AddSelfAndChildren(child.GetToken(), newPath);
             }
 
-        }
-        public async UniTask LoadGame(LoadGameContext e)
-        {
-            InitSerializers();
-            var path = GetSavePath(e.FilePath);
-
-            var saveData = await _fileSystem.Read<GameSaveData>(new()
-            {
-                Path = path,
-            });
-            var entities = GetSerializableEntities(Core);
-            foreach (var sceneData in saveData.SceneSaveDatas)
-            {
-                foreach (var data in sceneData.EntitySaveDatas)
-                {
-                    if (!entities.TryGetValue(e => e.Path == data.EntityPath, out var entity))
-                    {
-                        LogError($"No entity found with path '{data.EntityPath}'");
-                        continue;
-                    }
-
-                    ApplySaveData(entity.Entity, data);
-                }
-                //var sceneIsLoaded = sceneData.SceneName == "DontDestroyOnLoad";
-                //if (!sceneIsLoaded)
-                //{
-                //    var scene = SceneManager.GetSceneByName(sceneData.SceneName);
-                //    sceneIsLoaded = scene.isLoaded;
-                //}
-
-                //if (!sceneIsLoaded)
-                //    continue;
-
-                //foreach (var data in sceneData.EntitySaveDatas)
-                //{
-                //    //if (!existingEntities.TryGetValue(data.EntityPath, out var entity))
-                //    //    return;
-                //    //ApplySaveData(entity, data);
-                //}
-            }
         }
         void ApplySaveData(Entity entity, EntitySaveData saveData)
         {
@@ -281,9 +340,11 @@ namespace BB
             public IEntity Entity { get; init; }
         }
     }
+
     public sealed class GameSaveData
     {
         public int Version { get; init; }
+        public string GameInstaller { get; init; }
         public List<SceneSaveData> SceneSaveDatas { get; init; }
     }
     public sealed class SceneSaveData

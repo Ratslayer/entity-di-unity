@@ -24,17 +24,37 @@ namespace BB
             [ShowInInspector, LabelText("$_name")]
             public BaseScriptableObject Asset => _asset.asset;
         }
-        public bool HasAsset(string key, out BaseScriptableObject asset)
+        public bool HasAsset<T>(string key, out T asset) 
+            where T : BaseScriptableObject, ILoadableAsset
         {
             foreach (var a in _assets)
             {
                 if (a._name != key)
                     continue;
-                asset = a.Asset;
+                if (a.Asset is not T t)
+                    continue;
+                asset = t;
                 return true;
             }
             asset = null;
             return false;
+        }
+        public bool HasAssetKey(object obj, out string key)
+        {
+            key = null;
+
+            if (obj is not BaseScriptableObject asset)
+                return false;
+
+            if (obj is not ILoadableAsset loadableAsset)
+                return false;
+
+            if (!_assets.Contains(v => v._name == loadableAsset.AssetLoadKey))
+                return false;
+
+            key = loadableAsset.AssetLoadKey;
+
+            return true;
         }
 #if UNITY_EDITOR
         [Button]
