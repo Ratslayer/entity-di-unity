@@ -9,8 +9,8 @@ namespace BB
             Position = transform._transform.position;
             Rotation = transform._transform.rotation;
         }
-        public IEntityComponentSerializer GetSerializer()
-            => RootSerializerV1.Default;
+        public IEntityComponentSerializer[] GetSerializers()
+            => new[] { RootSerializerV1.Default };
         public float Scale
         {
             get => Transform.localScale.x;

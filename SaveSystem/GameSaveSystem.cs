@@ -33,6 +33,12 @@ namespace BB
     {
         public string FilePath { get; init; }
     }
+    public readonly struct LoadGameData
+    {
+        public ISerializableComponent Component { get; init; }
+        public IEntityComponentSerializer Serializer { get; init; }
+        public object SerializedData { get; init; }
+    }
     public interface IGameSaveSystem
     {
         UniTask SaveGame(SaveGameContext e);
@@ -46,6 +52,8 @@ namespace BB
         [Inject] ISerializedEntities _serializedEntities;
         [Inject] ISceneManager _sceneManager;
         [Inject] IGameManager _gameManager;
+        [Inject] IEvent<BeforeGameLoadEvent> _beforeGameLoad;
+        [Inject] IEvent<AfterGameLoadEvent> _afterGameLoad;
 
         public async UniTask SaveGame(SaveGameContext e)
         {
@@ -118,11 +126,13 @@ namespace BB
                 foreach (var element in elements)
                     if (element.Instance is ISerializableComponent comp)
                     {
-                        var serializer = comp.GetSerializer();
+                        var serializers = comp.GetSerializers();
+                        var serializer = serializers.Last();
                         var data = serializer.Serialize(comp);
                         components.Add(new()
                         {
-                            SerializerName = serializer.GetType().Name,
+                            ComponentName = comp.GetType().Name,
+                            SerializerIndex = serializers.Length - 1,
                             SerializedData = data
                         });
                     }
@@ -168,7 +178,6 @@ namespace BB
         }
         public async UniTask LoadGame(LoadGameContext e)
         {
-            InitSerializers();
             var path = GetSavePath(e.FilePath);
 
             var saveData = await _fileSystem.Read<GameSaveData>(new()
@@ -214,15 +223,13 @@ namespace BB
             {
                 GameInstaller = gameInstaller,
                 Scenes = scenes,
-                AfterSceneLoad = ApplySaveDataToAll
+                AfterSceneLoad = ApplySaveDataToAll,
+                SkipStartGameEvents = true
             });
-
-            //Entity._ref.World.CreateGame(gameInstaller);
-
-            //await _sceneManager.LoadScene(scenes[0].SceneName);
 
             void ApplySaveDataToAll()
             {
+                _beforeGameLoad.Publish();
                 var entities = GetSerializableEntities(Core);
                 foreach (var sceneData in saveData.SceneSaveDatas)
                 {
@@ -237,6 +244,7 @@ namespace BB
                         ApplySaveData(entity.Entity, data);
                     }
                 }
+                _afterGameLoad.Publish();
             }
         }
         PooledList<SerializableEntity> GetSerializableEntities(Entity root)
@@ -271,62 +279,118 @@ namespace BB
             if (saveData.SaveDatas.IsNullOrEmpty())
                 return;
 
-            var serializers = saveData.SaveDatas
-                .Select(data => (GetComponentSerializer(data.SerializerName), data.SerializedData))
-                .ToList();
-
-            foreach (var (serializer, data) in serializers)
-            {
-                serializer.ApplySpawn(new()
-                {
-                    Entity = entity,
-                    SerializedData = data,
-                });
-            }
-            foreach (var (serializer, data) in serializers)
-            {
-                serializer.ApplyAfterSpawn(new()
-                {
-                    Entity = entity,
-                    SerializedData = data,
-                });
-            }
-        }
-        IEntityComponentSerializer GetComponentSerializer(string name)
-        {
-            if (_serializers.TryGetValue(name, out var componentSerializer))
-                return componentSerializer;
-
-            Log.Error($"{name} serializer type not found. " +
-                    $"Skipping component.");
-            return null;
-        }
-        void InitSerializers()
-        {
-            if (_serializers is not null)
+            if (entity._ref is not IEntityDetails details)
                 return;
 
-            _serializers = new();
-            foreach (var type in GetType().Assembly.GetTypes())
+            var components = new Dictionary<string, object>();
+            foreach (var comp in details.GetElements())
             {
-                if (!typeof(IEntityComponentSerializer).IsAssignableFrom(type))
+                if (comp.Instance is not ISerializableComponent)
                     continue;
 
-                if (type.IsAbstract)
-                    continue;
-
-                if (!type.HasDefaultConstructor())
+                var type = comp.Instance.GetType();
+                if (components.ContainsKey(type.Name))
                 {
-                    Log.Error($"{type.Name} serializer does not have a default constructor. " +
-                        $"Skipping component.");
+                    LogError($"Entity {entity} contains multiple components with name {type.Name}");
+                    continue;
+                }
+                components.Add(type.Name, comp.Instance);
+            }
+
+            var serializableDatas = new List<LoadGameData>();
+
+            foreach (var data in saveData.SaveDatas)
+            {
+                if (!components.TryGetValue(data.ComponentName, out var comp))
+                {
+                    LogError($"Could not find a component with name {data.ComponentName}");
                     continue;
                 }
 
-                var serializer = (IEntityComponentSerializer)Activator.CreateInstance(type);
-                _serializers.Add(type.Name, serializer);
+                if (comp is not ISerializableComponent serializableComp)
+                {
+                    LogError($"Component {data.ComponentName} is not serializable");
+                    continue;
+                }
+
+                var serializers = serializableComp.GetSerializers();
+                if (serializers?.Length is not > 0)
+                {
+                    LogError($"Component {data.ComponentName} does not have any serializers");
+                    continue;
+                }
+
+                if (serializers.Length <= data.SerializerIndex)
+                {
+                    LogError($"Component {data.ComponentName} has {serializers.Length} serializers, " +
+                        $"while serialized index is {data.SerializerIndex}");
+                    continue;
+                }
+
+                var serializer = serializers[data.SerializerIndex];
+                serializableDatas.Add(new()
+                {
+                    Component = serializableComp,
+                    Serializer = serializer,
+                    SerializedData = data.SerializedData
+                });
+            }
+
+            foreach (var data in serializableDatas)
+            {
+                data.Serializer.ApplySpawn(new()
+                {
+                    Entity = entity,
+                    Component = data.Component,
+                    SerializedData = data.SerializedData
+                });
+            }
+
+            foreach (var data in serializableDatas)
+            {
+                data.Serializer.ApplyAfterSpawn(new()
+                {
+                    Entity = entity,
+                    Component = data.Component,
+                    SerializedData = data.SerializedData
+                });
             }
         }
-        Dictionary<string, IEntityComponentSerializer> _serializers;
+        //IEntityComponentSerializer GetComponentSerializer(string name)
+        //{
+        //    if (_serializers.TryGetValue(name, out var componentSerializer))
+        //        return componentSerializer;
+
+        //    Log.Error($"{name} serializer type not found. " +
+        //            $"Skipping component.");
+        //    return null;
+        //}
+        //void InitSerializers()
+        //{
+        //    if (_serializers is not null)
+        //        return;
+
+        //    _serializers = new();
+        //    foreach (var type in GetType().Assembly.GetTypes())
+        //    {
+        //        if (!typeof(IEntityComponentSerializer).IsAssignableFrom(type))
+        //            continue;
+
+        //        if (type.IsAbstract)
+        //            continue;
+
+        //        if (!type.HasDefaultConstructor())
+        //        {
+        //            Log.Error($"{type.Name} serializer does not have a default constructor. " +
+        //                $"Skipping component.");
+        //            continue;
+        //        }
+
+        //        var serializer = (IEntityComponentSerializer)Activator.CreateInstance(type);
+        //        _serializers.Add(type.Name, serializer);
+        //    }
+        //}
+        //Dictionary<string, IEntityComponentSerializer> _serializers;
         string GetSavePath(string path) => $"Saves/{path}.txt";
 
         public string GetFullPath(string fileName)
@@ -360,7 +424,8 @@ namespace BB
     }
     public sealed class EntityComponentSaveData
     {
-        public string SerializerName { get; init; }
+        public string ComponentName { get; init; }
+        public int SerializerIndex { get; init; }
         public object SerializedData { get; init; }
     }
     public interface IEntityComponentSerializer
@@ -372,11 +437,12 @@ namespace BB
     public readonly struct DeserializationContext
     {
         public Entity Entity { get; init; }
+        public ISerializableComponent Component { get; init; }
         public object SerializedData { get; init; }
     }
     public interface ISerializableComponent
     {
-        IEntityComponentSerializer GetSerializer();
+        IEntityComponentSerializer[] GetSerializers();
     }
 
 }
