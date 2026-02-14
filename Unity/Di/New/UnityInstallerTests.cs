@@ -106,13 +106,13 @@ namespace BB.Di
                 var installerName = string.Join('/', entities.Select(e => e?.Name ?? "NULL"));
                 Log.Error($"Error during test in installer {installerName}: {message}");
             }
-            bool AssertInstallerExists(UnityEngine.Object installer)
-            {
-                if (installer)
-                    return true;
-                LogError("Null/destroyed installer encountered in a test");
-                return false;
-            }
+            //bool AssertInstallerExists(UnityEngine.Object installer)
+            //{
+            //    if (installer)
+            //        return true;
+            //    LogError("Null/destroyed installer encountered in a test");
+            //    return false;
+            //}
         }
     }
 }

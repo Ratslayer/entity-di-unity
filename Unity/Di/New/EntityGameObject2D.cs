@@ -1,6 +1,6 @@
 ﻿namespace BB.Di
 {
-	public sealed class EntityGameObject2D : BaseEntityInstallerGameObject
+    public sealed class EntityGameObject2D : BaseEntityInstallerGameObject
     {
         public override void Install(IDiContainer container)
         {
@@ -13,7 +13,8 @@
            => Entity.Spawn(new SpawnEntityFromPrefab2DContext
            {
                Prefab = this,
-               DoNotInstantiate = true
+               DoNotInstantiate = true,
+               SerializationName = _serializationName
            })._ref;
     }
 }

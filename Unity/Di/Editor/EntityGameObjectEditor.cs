@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using BB.Di;
 
-[CustomEditor(typeof(BaseEntityGameObject))]
+[CustomEditor(typeof(BaseEntityGameObject), true)]
 public sealed class EntityGameObjectEditor : BaseEditor
 {
 	bool _binds;
@@ -158,6 +158,8 @@ public static class EditorEntityUtils
 		var result = new List<ContainerBindData>();
 		foreach (var element in entity.GetElements())
 		{
+			if (element.Instance is null)
+				continue;
 			var instanceType = element.Instance.GetType();
 			var data = new ContainerBindData(
 				element.ContractType,

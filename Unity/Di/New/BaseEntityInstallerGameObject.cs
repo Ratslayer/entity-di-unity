@@ -8,6 +8,7 @@ namespace BB
         IEntityBehaviour,
         IEntityInstaller
     {
+        public string _serializationName;
         public string Name => name;
         public override GameObject Prefab => null;
         bool _selfSpawned;
@@ -28,6 +29,8 @@ namespace BB
                 return;
             _selfSpawned = true;
             _entityRef = SpawnEntity();
+            if (_entityRef is IEntityDetails details)
+                details.OneShot = true;
         }
         protected abstract IEntity SpawnEntity();
 		private void OnDestroy()

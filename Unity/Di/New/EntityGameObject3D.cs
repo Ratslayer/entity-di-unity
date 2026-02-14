@@ -15,7 +15,8 @@ namespace BB
             => Entity.Spawn(new SpawnEntityFromPrefab3DContext
             {
                 Prefab = this,
-                DoNotInstantiate = true
+                DoNotInstantiate = true,
+                SerializationName = _serializationName
             })._ref;
     }
 }

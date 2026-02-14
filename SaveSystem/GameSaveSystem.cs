@@ -141,6 +141,7 @@ namespace BB
                 {
                     EntityPath = serializedPath,
                     FactoryName = factoryName,
+                    State = entity._ref.State,
                     SaveDatas = components,
                 };
             }
@@ -255,9 +256,14 @@ namespace BB
 
             void AddSelfAndChildren(Entity entity, string path)
             {
-                if (!entity)
-                    return;
-                if (string.IsNullOrWhiteSpace(entity._ref.SerializationName))
+                var hasName = !string.IsNullOrWhiteSpace(entity._ref.SerializationName);
+                var isSpawned = (bool)entity;
+                var isOneShot = entity._ref is IEntityDetails details && details.OneShot;
+                var willBeAdded = hasName && (isSpawned || isOneShot);
+                LogInfo($"Entity {entity} " +
+                    $": {entity._ref.SerializationName} " +
+                    $": {hasName} {isSpawned} {isOneShot} {willBeAdded}");
+                if (!willBeAdded)
                     return;
 
                 var newPath = string.Join('/', path, entity._ref.SerializationName);
@@ -277,6 +283,10 @@ namespace BB
         void ApplySaveData(Entity entity, EntitySaveData saveData)
         {
             if (saveData.SaveDatas.IsNullOrEmpty())
+                return;
+
+            entity._ref.SetState(saveData.State);
+            if (entity._ref.State is EntityState.Despawned or EntityState.Destroyed)
                 return;
 
             if (entity._ref is not IEntityDetails details)
@@ -356,46 +366,9 @@ namespace BB
                 });
             }
         }
-        //IEntityComponentSerializer GetComponentSerializer(string name)
-        //{
-        //    if (_serializers.TryGetValue(name, out var componentSerializer))
-        //        return componentSerializer;
-
-        //    Log.Error($"{name} serializer type not found. " +
-        //            $"Skipping component.");
-        //    return null;
-        //}
-        //void InitSerializers()
-        //{
-        //    if (_serializers is not null)
-        //        return;
-
-        //    _serializers = new();
-        //    foreach (var type in GetType().Assembly.GetTypes())
-        //    {
-        //        if (!typeof(IEntityComponentSerializer).IsAssignableFrom(type))
-        //            continue;
-
-        //        if (type.IsAbstract)
-        //            continue;
-
-        //        if (!type.HasDefaultConstructor())
-        //        {
-        //            Log.Error($"{type.Name} serializer does not have a default constructor. " +
-        //                $"Skipping component.");
-        //            continue;
-        //        }
-
-        //        var serializer = (IEntityComponentSerializer)Activator.CreateInstance(type);
-        //        _serializers.Add(type.Name, serializer);
-        //    }
-        //}
-        //Dictionary<string, IEntityComponentSerializer> _serializers;
         string GetSavePath(string path) => $"Saves/{path}.txt";
-
         public string GetFullPath(string fileName)
             => _fileSystem.GetFullPath(GetSavePath(fileName));
-
         Entity Core => WorldBootstrap.World.Core.Entity.GetToken();
         Entity Game => WorldBootstrap.World.Game.Entity.GetToken();
         readonly struct TempEntitySaveData
@@ -404,7 +377,6 @@ namespace BB
             public IEntity Entity { get; init; }
         }
     }
-
     public sealed class GameSaveData
     {
         public int Version { get; init; }
@@ -420,6 +392,7 @@ namespace BB
     {
         public string EntityPath { get; init; }
         public string FactoryName { get; init; }
+        public EntityState State { get; init; }
         public List<EntityComponentSaveData> SaveDatas { get; init; }
     }
     public sealed class EntityComponentSaveData
@@ -444,5 +417,4 @@ namespace BB
     {
         IEntityComponentSerializer[] GetSerializers();
     }
-
 }
