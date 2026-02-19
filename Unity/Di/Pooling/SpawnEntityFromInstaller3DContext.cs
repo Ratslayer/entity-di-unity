@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace BB
 {
-
     public readonly struct SpawnEntityFromInstaller3DContext
     {
         public IEntityInstaller3D Installer { get; init; }
@@ -107,52 +106,4 @@ namespace BB
         public static implicit operator EntityGameObject2DAdapter(EntityComponent2D go)
             => new() { Object = go.GetComponent<EntityGameObject2D>() };
     }
-    //public Entity Spawn()
-    //{
-
-    //    if (Installer.PrefabInstaller)
-    //    {
-
-    //        var entity = GameObjectSpawnUtils.CreateDespawnedGameObjectEntity(
-    //            Installer.PrefabInstaller,
-    //            Parent);
-
-    //        ApplyTransform(entity);
-
-    //        var token = GameObjectSpawnUtils.EnableEntity(entity);
-    //        if (!string.IsNullOrWhiteSpace(SerializationName))
-    //            EntitySerializationUtils.RegisterAsSerializedEntity(token, SerializationName);
-    //        return token;
-    //    }
-    //    if (Installer.Installer)
-    //    {
-    //        var entity = new EntitySpawnContext
-    //        {
-    //            Installer = Installer.Installer,
-    //            Parent = Parent,
-    //            SerializationName = SerializationName,
-    //        }.Spawn();
-
-    //        ApplyTransform(entity._ref);
-
-    //        return entity;
-    //    }
-
-    //    throw new ArgumentException($"Could not create an entity with this context.");
-    //}
-    //public T Spawn<T>() where T : class
-    //{
-    //    var entity = Spawn();
-    //    return GameObjectSpawnUtils.GameObjectEntityRequire<T>(entity);
-    //}
-
-    //void ApplyTransform(IEntity entity)
-    //{
-    //    var root = entity.Require<Root>();
-
-    //    Transform?.Apply(root);
-    //    if (DoNotDestroyOnLoad)
-    //        GameObject.DontDestroyOnLoad(root.Transform);
-    //}
-    //}
 }

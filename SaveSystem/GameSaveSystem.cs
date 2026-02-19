@@ -260,9 +260,6 @@ namespace BB
                 var isSpawned = (bool)entity;
                 var isOneShot = entity._ref is IEntityDetails details && details.OneShot;
                 var willBeAdded = hasName && (isSpawned || isOneShot);
-                LogInfo($"Entity {entity} " +
-                    $": {entity._ref.SerializationName} " +
-                    $": {hasName} {isSpawned} {isOneShot} {willBeAdded}");
                 if (!willBeAdded)
                     return;
 

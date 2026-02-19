@@ -1,6 +1,12 @@
 ﻿using UnityEngine;
 namespace BB
 {
+    public enum TransformOperationSpace
+    {
+        Global = 0,
+        Local = 1,
+        Additive = 2
+    }
     public readonly struct TransformOperation
     {
         public readonly Transform _parent;
@@ -10,6 +16,7 @@ namespace BB
         public readonly TransformOperationUsage _usage;
 
         #region Properties
+        public TransformOperationSpace Space { get; init; }
         public Transform Parent
         {
             init
@@ -42,22 +49,6 @@ namespace BB
                 _usage |= TransformOperationUsage.Scale;
             }
         }
-        public bool Local
-        {
-            init
-            {
-                if (value)
-                    _usage |= TransformOperationUsage.Local;
-            }
-        }
-        public bool Additive
-        {
-            init
-            {
-                if (value)
-                    _usage |= TransformOperationUsage.Additive;
-            }
-        }
         public Vector3 Forward
         {
             init
@@ -87,22 +78,6 @@ namespace BB
             }
         }
         #endregion
-        #region Constructors
-        public TransformOperation(
-            Vector3 pos,
-            in RotationAdapter rot,
-            in ScaleAdapter scale,
-            Transform parent,
-            TransformOperationUsage usage)
-        {
-            _position = pos;
-            _rotation = rot;
-            _scale = scale;
-            _parent = parent;
-            _usage = usage;
-            DoNotDestroyOnLoad = false;
-        }
-        #endregion
         #region Apply
         public void Apply(in TransformAdapter t)
         {
@@ -116,26 +91,26 @@ namespace BB
             }
             else if (HasFlag(TransformOperationUsage.Parent))
                 transform.SetParent(_parent, true);
-            if (HasFlag(TransformOperationUsage.Additive))
+            switch (Space)
             {
-                if (HasFlag(TransformOperationUsage.Position))
-                    transform.localPosition += _position;
-                if (HasFlag(TransformOperationUsage.Rotation))
-                    transform.localRotation *= _rotation;
-            }
-            else if (HasFlag(TransformOperationUsage.Local))
-            {
-                if (HasFlag(TransformOperationUsage.Position))
-                    transform.localPosition = _position;
-                if (HasFlag(TransformOperationUsage.Rotation))
-                    transform.localRotation = _rotation;
-            }
-            else
-            {
-                if (HasFlag(TransformOperationUsage.Position))
-                    transform.position = _position;
-                if (HasFlag(TransformOperationUsage.Rotation))
-                    transform.rotation = _rotation;
+                case TransformOperationSpace.Additive:
+                    if (HasFlag(TransformOperationUsage.Position))
+                        transform.localPosition += _position;
+                    if (HasFlag(TransformOperationUsage.Rotation))
+                        transform.localRotation *= _rotation;
+                    break;
+                case TransformOperationSpace.Local:
+                    if (HasFlag(TransformOperationUsage.Position))
+                        transform.localPosition = _position;
+                    if (HasFlag(TransformOperationUsage.Rotation))
+                        transform.localRotation = _rotation;
+                    break;
+                default:
+                    if (HasFlag(TransformOperationUsage.Position))
+                        transform.position = _position;
+                    if (HasFlag(TransformOperationUsage.Rotation))
+                        transform.rotation = _rotation;
+                    break;
             }
             if (HasFlag(TransformOperationUsage.Scale))
                 transform.localScale = _scale;
@@ -150,17 +125,6 @@ namespace BB
         }
         bool HasFlag(TransformOperationUsage usage)
             => _usage.HasFlag(usage);
-        #endregion
-        #region Methods
-        public TransformOperation Add(Vector3 pos, RotationAdapter rot, ScaleAdapter scale)
-        {
-            return new(
-                _position + pos,
-                rot._rotation * _rotation,
-                _scale.Mul(scale),
-                _parent,
-                _usage);
-        }
         #endregion
     }
 }

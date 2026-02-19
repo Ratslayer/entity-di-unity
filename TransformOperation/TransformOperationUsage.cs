@@ -5,8 +5,6 @@
     Rotation = 1 << 1,
     Scale = 1 << 2,
     Parent = 1 << 3,
-    Local = 1 << 4,
-    Additive = 1 << 5,
 }
 public enum TransformOperation2DUsage
 {
