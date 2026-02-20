@@ -21,7 +21,7 @@ public static class EditorComponentExtensions
 #endif
     }
 #if UNITY_EDITOR
-    public static void Undo(this UnityEngine.Object obj, string message = null)
+    public static void RegisterUndo(this UnityEngine.Object obj, string message = null)
     {
         UnityEditor.Undo.RecordObject(obj, message);
         obj.SetDirty();

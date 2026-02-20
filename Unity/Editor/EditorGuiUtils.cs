@@ -33,6 +33,9 @@ namespace BB
             if (GUILayout.Button(name, options))
                 action();
         }
+        public static T Asset<T>(string name, T asset, params GUILayoutOption[] options)
+            where T : UnityEngine.Object
+            => EditorGUILayout.ObjectField(name, asset, typeof(T), false, options) as T;
         public static void Toggle(string name, ref bool value)
         {
             value = GUILayout.Toggle(value, name, GUI.skin.button);
