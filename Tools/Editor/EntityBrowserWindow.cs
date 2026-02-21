@@ -165,7 +165,7 @@ namespace BB
                 if (search._name.ToLower().Contains(str.ToLower()))
                     return true;
 
-                var capitalizedWords = StringExtensions.SplitByCapitalWords(str);
+                var capitalizedWords = StringExtensions.SplitByCapitalLetters(str);
                 if (capitalizedWords.Length < search._capitalizedWords.Length)
                     return false;
 
@@ -328,7 +328,7 @@ namespace BB
                 => new()
                 {
                     _name = str,
-                    _capitalizedWords = StringExtensions.SplitByCapitalWords(str)
+                    _capitalizedWords = StringExtensions.SplitByCapitalLetters(str)
                 };
         }
         sealed class EntityEntry

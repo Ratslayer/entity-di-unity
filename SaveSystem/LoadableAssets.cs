@@ -83,9 +83,7 @@ namespace BB
                     return asset;
 
                 var a = (BaseScriptableObject)asset;
-                var tokens = a.name.Split()
-                    .SelectMany(s => s.SplitByCapitalWords())
-                    .Select(s => s.ToLower());
+                var tokens = a.name.SplitByWords();
                 var prefix = a switch
                 {
                     BaseBoardKey => "board_key",
