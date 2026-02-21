@@ -12,6 +12,10 @@ namespace BB
     public abstract class LoadableInstallerAsset : InstallerAsset, ILoadableAsset
     {
 		public string _assetLoadKey;
-        public string AssetLoadKey => _assetLoadKey;
+        public string AssetLoadKey
+		{
+			get => _assetLoadKey;
+			set => _assetLoadKey = value;
+		}
     }
 }

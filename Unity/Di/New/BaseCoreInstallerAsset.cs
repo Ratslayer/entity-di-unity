@@ -7,12 +7,9 @@ namespace BB
         public BaseEntityGameObject EntityGameObject => GetComponentInParent<BaseEntityGameObject>();
         public Entity Entity => EntityGameObject.Entity;
     }
-    public abstract class BaseGameInstallerAsset : InstallerAsset, ILoadableAsset
+    public abstract class BaseGameInstallerAsset : LoadableInstallerAsset
     {
-        public string _assetLoadKey;
         public abstract PlayerInstaller PlayerInstaller { get; }
-
-        public string AssetLoadKey => _assetLoadKey;
 
         public override void Install(IDiContainer container)
         {
