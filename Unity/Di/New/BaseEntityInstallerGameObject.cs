@@ -83,7 +83,7 @@ namespace BB
         }
         void InitKey(BaseEntityInstallerGameObject obj, HashSet<string> keys)
         {
-            var tokens = obj.name.SplitByWords();
+            var tokens = obj.name.SplitByWords().ToArray();
 
             string prefix;
             int id;

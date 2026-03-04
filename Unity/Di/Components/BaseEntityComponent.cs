@@ -1,5 +1,6 @@
 ﻿using BB.Di;
 using System;
+using System.Linq;
 using System.Reflection;
 namespace BB
 {
@@ -11,11 +12,17 @@ namespace BB
 
         }
     }
-	public abstract class BaseEntityComponent : BaseComponent, IEntityProvider, IEntityBehaviour
+    public abstract class BaseEntityComponent : BaseComponent, IEntityProvider, IEntityBehaviour
     {
         public virtual void Install(IDiContainer container)
         {
             container.Component(GetType());
+
+            var childTypes = GetType()
+                .GetNestedTypes(BindingFlags.Public | BindingFlags.NonPublic)
+                .Where(t => t.HasAttribute<SystemAttribute>());
+            foreach (var childType in childTypes)
+                container.System(childType);
         }
         bool _getAttributeRead = false;
         [Get]
@@ -27,7 +34,8 @@ namespace BB
                 return;
             _getAttributeRead = true;
 
-            var getMembers = ReflectionUtils.GetAllMembersWithAttribute<GetAttribute>(GetType());
+            var type = GetType();
+            var getMembers = ReflectionUtils.GetAllMembersWithAttribute<GetAttribute>(type);
             foreach (var info in getMembers)
                 switch (info)
                 {
