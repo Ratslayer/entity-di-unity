@@ -13,19 +13,16 @@ namespace BB
 {
     public sealed class LoadableAssets : BaseScriptableObject, ILoadableAssets
     {
-        [SerializeField, ReadOnly]
-        LoadableAsset[] _assets = { };
+        [SerializeField, ReadOnly] LoadableAsset[] _assets = { };
 
         [Serializable]
         struct LoadableAsset
         {
-            [HideInInspector]
-            public string _name;
-            [HideInInspector]
-            public LazyLoadReference<BaseScriptableObject> _asset;
-            [ShowInInspector, LabelText("$_name")]
-            public BaseScriptableObject Asset => _asset.asset;
+            [HideInInspector] public string _name;
+            [HideInInspector] public LazyLoadReference<BaseScriptableObject> _asset;
+            [ShowInInspector, LabelText("$_name")] public BaseScriptableObject Asset => _asset.asset;
         }
+
         public bool HasAsset<T>(string key, out T asset)
             where T : BaseScriptableObject, ILoadableAsset
         {
@@ -38,9 +35,11 @@ namespace BB
                 asset = t;
                 return true;
             }
+
             asset = null;
             return false;
         }
+
         public bool HasAssetKey(object obj, out string key)
         {
             key = null;
@@ -63,6 +62,7 @@ namespace BB
         void AddAllAssets()
         {
             AddAssets(Filter);
+
             ILoadableAsset Filter(ILoadableAsset asset)
             {
                 if (string.IsNullOrWhiteSpace(asset.AssetLoadKey))
@@ -70,13 +70,16 @@ namespace BB
                     Log.Error($"{((BaseScriptableObject)asset).name} is loadable but has no load key.");
                     return null;
                 }
+
                 return asset;
             }
         }
+
         [Button]
         void AddAndInitAllAssets()
         {
             AddAssets(Filter);
+
             ILoadableAsset Filter(ILoadableAsset asset)
             {
                 if (!string.IsNullOrWhiteSpace(asset.AssetLoadKey))
@@ -87,6 +90,7 @@ namespace BB
                 var prefix = a switch
                 {
                     BaseBoardKey => "board_key",
+                    BaseItemAsset => "item",
                     _ => "asset"
                 };
 
@@ -101,6 +105,7 @@ namespace BB
                 return asset;
             }
         }
+
         void AddAssets(Func<ILoadableAsset, ILoadableAsset> filter)
         {
             var assetIds = AssetDatabase.FindAssets($"t:{nameof(BaseScriptableObject)}");
@@ -120,6 +125,7 @@ namespace BB
                     _asset = asset
                 });
             }
+
             _assets = assets.ToArray();
         }
 #endif
