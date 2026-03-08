@@ -1,6 +1,48 @@
 ﻿using BB;
 using UnityEngine;
-
+public struct V3Serialized
+{
+    public float X { get; init; }
+    public float Y { get; init; }
+    public float Z { get; init; }
+    public static implicit operator Vector3(V3Serialized v)
+        => new()
+        {
+            x = v.X,
+            y = v.Y,
+            z = v.Z,
+        };
+    public static implicit operator V3Serialized(Vector3 v)
+        => new()
+        {
+            X = v.x,
+            Y = v.y,
+            Z = v.z,
+        };
+}
+public struct QuatSerialized
+{
+    public float X { get; init; }
+    public float Y { get; init; }
+    public float Z { get; init; }
+    public float W { get; init; }
+    public static implicit operator Quaternion(QuatSerialized quat)
+        => new()
+        {
+            x = quat.X,
+            y = quat.Y,
+            z = quat.Z,
+            w = quat.W
+        };
+    public static implicit operator QuatSerialized(Quaternion quat)
+        => new()
+        {
+            X = quat.x,
+            Y = quat.y,
+            Z = quat.z,
+            W = quat.w
+        };
+}
 public sealed class RootSerializerV1 : BaseSerializer<RootSerializerV1, Root, RootSerializerV1.Data>
 {
     protected override void ApplyAfterSpawn(Root target, Data data)
@@ -26,47 +68,5 @@ public sealed class RootSerializerV1 : BaseSerializer<RootSerializerV1, Root, Ro
         public QuatSerialized Rotation { get; init; }
         public V3Serialized Scale { get; init; }
     }
-    public struct V3Serialized
-    {
-        public float X { get; init; }
-        public float Y { get; init; }
-        public float Z { get; init; }
-        public static implicit operator Vector3(V3Serialized v)
-            => new()
-            {
-                x = v.X,
-                y = v.Y,
-                z = v.Z,
-            };
-        public static implicit operator V3Serialized(Vector3 v)
-           => new()
-           {
-               X = v.x,
-               Y = v.y,
-               Z = v.z,
-           };
-    }
-    public struct QuatSerialized
-    {
-        public float X { get; init; }
-        public float Y { get; init; }
-        public float Z { get; init; }
-        public float W { get; init; }
-        public static implicit operator Quaternion(QuatSerialized quat)
-            => new()
-            {
-                x = quat.X,
-                y = quat.Y,
-                z = quat.Z,
-                w = quat.W
-            };
-        public static implicit operator QuatSerialized(Quaternion quat)
-           => new()
-           {
-               X = quat.x,
-               Y = quat.y,
-               Z = quat.z,
-               W = quat.w
-           };
-    }
+   
 }

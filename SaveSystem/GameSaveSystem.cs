@@ -57,13 +57,14 @@ namespace BB
 
         public async UniTask SaveGame(SaveGameContext e)
         {
+            LogInfo($"Began saving game to {e.FilePath}");
             if (Game._ref is not IEntityDetails gameDetails
                 || !_assets.HasAssetKey(gameDetails.Installer, out var gameInstallerKey))
             {
                 LogError($"Installer for Game entity is not registered as a loadable asset. Can't save game.");
                 return;
             }
-
+            
             var noSceneDatas = new List<EntitySaveData>();
 
             var openScenes = _sceneManager.GetAllOpenScenes();
@@ -116,6 +117,8 @@ namespace BB
 
             scenes.DisposeAndClear();
             sceneDatas.DisposeElementsAndClear();
+            
+            LogInfo($"Saved game to {filePath}");
             EntitySaveData GetEntitySaveData(Entity entity, string serializedPath = null)
             {
                 var details = (IEntityDetails)entity._ref;
@@ -180,7 +183,8 @@ namespace BB
         public async UniTask LoadGame(LoadGameContext e)
         {
             var path = GetSavePath(e.FilePath);
-
+            
+            LogInfo($"Began loading game from {path}");
             var saveData = await _fileSystem.Read<GameSaveData>(new()
             {
                 Path = path,
@@ -225,7 +229,6 @@ namespace BB
                 GameInstaller = gameInstaller,
                 Scenes = scenes,
                 AfterSceneLoad = ApplySaveDataToAll,
-                SkipStartGameEvents = true
             });
 
             void ApplySaveDataToAll()
@@ -246,6 +249,7 @@ namespace BB
                     }
                 }
                 _afterGameLoad.Publish();
+                LogInfo($"Loaded game from {path}");
             }
         }
         PooledList<SerializableEntity> GetSerializableEntities(Entity root)

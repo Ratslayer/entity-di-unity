@@ -13,7 +13,7 @@ namespace BB
                 .Require<IGameManager>()
                 .StartGame(new()
                 {
-                    GameInstaller = _installer
+                    GameInstaller = _installer,
                 });
         }
     }
