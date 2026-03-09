@@ -5,17 +5,18 @@ namespace BB
     public sealed class GameInstallerBehaviour : BaseComponent
     {
         public BaseGameInstallerAsset _installer;
+
         private void Awake()
         {
             if (WorldBootstrap.World.Game?.Entity is not null)
                 return;
             World
-                .Require<IGameManager>()
-                .StartGame(new()
-                {
-                    GameInstaller = _installer,
-                });
+                .Require<IGameScenariosService>()
+                .StartGame(_installer, null);
         }
     }
-    public sealed class GameLoadedAtRuntime : Variable<GameLoadedAtRuntime, bool> { }
+
+    public sealed class GameLoadedAtRuntime : Variable<GameLoadedAtRuntime, bool>
+    {
+    }
 }
