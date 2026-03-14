@@ -17,7 +17,9 @@ namespace BB
             Variable,
             System,
         }
+
         const int MaxNumEntries = 30;
+
         [MenuItem("Tools/BB/Entity Browser")]
         [Shortcut("Open Entity Browser Window", KeyCode.F2, ShortcutModifiers.Shift)]
         public static void ShowWindow()
@@ -42,6 +44,7 @@ namespace BB
 
             DrawEntries();
         }
+
         void UpdateEntities()
         {
             _entities.Clear();
@@ -64,11 +67,13 @@ namespace BB
 
             UpdatedSearchedEntries();
         }
+
         void ClearEntities()
         {
             _entities.Clear();
             UpdatedSearchedEntries();
         }
+
         void UpdatedSearchedEntries()
         {
             _entries.Clear();
@@ -93,6 +98,7 @@ namespace BB
                                     searchData._componentName = pair[1];
                                     break;
                             }
+
                             break;
                     }
                 }
@@ -152,6 +158,7 @@ namespace BB
                         return _tags.Contains(tag);
                     }
                 }
+
                 entry._components.SortByToString();
                 if (entry._components.Count > 0)
                     _entries.Add(entry);
@@ -171,19 +178,20 @@ namespace BB
 
                 for (int i = 0; i < search._capitalizedWords.Length; i++)
                     if (!capitalizedWords[i].StartsWith(
-                        search._capitalizedWords[i],
-                        StringComparison.InvariantCultureIgnoreCase))
+                            search._capitalizedWords[i],
+                            StringComparison.InvariantCultureIgnoreCase))
                         return false;
 
                 return true;
             }
         }
+
         void DrawEntries()
         {
             using (LayoutUtils.Horizontal)
             {
                 using var change = LayoutUtils.OnChange(UpdatedSearchedEntries);
-                var tags = new BrowserTag[]
+                var tags = new[]
                 {
                     BrowserTag.Event,
                     BrowserTag.Variable,
@@ -199,6 +207,7 @@ namespace BB
                     else _tags.Remove(tag);
                 }
             }
+
             using var scroll = LayoutUtils.Scroll(this);
             foreach (var i in _entries.Count)
             {
@@ -223,6 +232,7 @@ namespace BB
                     if (!foldout)
                         continue;
                 }
+
                 using var indent = LayoutUtils.Indent;
                 EditorGUILayout.LabelField($"Parent: {entry.Entity._ref.Parent?.Name ?? "None"}");
                 foreach (var ec in entry._components)
@@ -245,10 +255,7 @@ namespace BB
                                 () => SelectObjButton(topValue));
                             break;
                         case IBoard board:
-                            DrawFoldout(board.GetType().Name, board, () =>
-                            {
-                                EditorBoardUtils.DrawBoard(board);
-                            });
+                            DrawFoldout(board.GetType().Name, board, () => { EditorBoardUtils.DrawBoard(board); });
                             break;
                         case IEvent e:
                             if (e is not IEventHandlers h || h.Handlers.Count == 0)
@@ -256,26 +263,52 @@ namespace BB
                                 DrawLabel(comp);
                                 continue;
                             }
+
                             DrawFoldout($"{comp} [{h.Handlers.Count}]", e, () =>
                             {
                                 foreach (var h in h.Handlers)
                                     EditorGUILayout.LabelField(h.ToString());
                             });
                             break;
-                        case ChildEntityVariable cevar:
+                        case IInventory inventory:
+                            DrawFoldout($"{comp} [{inventory.Slots.Count}]", inventory, () =>
                             {
-                                if (cevar.Entity)
+                                foreach (var slot in inventory.Slots)
                                 {
-                                    using var l = LayoutUtils.Horizontal;
-                                    DrawLabel($"{comp}:{cevar.Installer.Name}");
-                                    EditorGuiUtils.Button("Select", () =>
+                                    var item = slot.Item;
+                                    var itemCount = slot.NumItems;
+                                    using var _ = LayoutUtils.Horizontal
+                                        .LinkDisposable(LayoutUtils.OnChange(OnChange));
+                                    item = EditorGUILayout.ObjectField(
+                                        slot.Item as UnityEngine.Object,
+                                        typeof(BaseItemAsset),
+                                        false) as IItem;
+                                    itemCount = EditorGUILayout.IntField(slot.NumItems);
+
+                                    void OnChange()
                                     {
-                                        _searchValue = cevar.Entity;
-                                        UpdatedSearchedEntries();
-                                    });
+                                        if (item is not null && itemCount == 0)
+                                            itemCount = 1;
+                                            
+                                        slot.Set(item, itemCount);
+                                    }
                                 }
-                                else DrawLabel(comp);
+                            });
+                            break;
+                        case ChildEntityVariable cevar:
+                        {
+                            if (cevar.Entity)
+                            {
+                                using var l = LayoutUtils.Horizontal;
+                                DrawLabel($"{comp}:{cevar.Installer.Name}");
+                                EditorGuiUtils.Button("Select", () =>
+                                {
+                                    _searchValue = cevar.Entity;
+                                    UpdatedSearchedEntries();
+                                });
                             }
+                            else DrawLabel(comp);
+                        }
                             break;
                         case IVariable variable:
                             DrawLabel(variable);
@@ -286,6 +319,7 @@ namespace BB
                     }
                 }
             }
+
             void DrawFoldout(string name, object key, Action draw)
             {
                 if (!EditorGuiUtils.Foldout(name, key))
@@ -296,8 +330,10 @@ namespace BB
                     draw();
                 }
             }
+
             void DrawLabel(object obj)
                 => EditorGUILayout.LabelField(GetLabel(obj));
+
             string GetLabel(object obj)
                 => obj switch
                 {
@@ -305,6 +341,7 @@ namespace BB
                     null => "NULL",
                     _ => obj.ToString()
                 };
+
             void SelectObjButton(object obj)
             {
                 if (obj is UnityEngine.Object uObj)
@@ -320,10 +357,12 @@ namespace BB
             public List<SearchValue> _entityNames = new();
             public SearchValue _componentName;
         }
+
         sealed class SearchValue
         {
             public string _name;
             public string[] _capitalizedWords;
+
             public static implicit operator SearchValue(string str)
                 => new()
                 {
@@ -331,11 +370,13 @@ namespace BB
                     _capitalizedWords = StringExtensions.SplitByCapitalLetters(str)
                 };
         }
+
         sealed class EntityEntry
         {
             public Entity Entity { get; init; }
             public readonly List<EntityBrowserComponent> _components = new();
         }
+
         sealed class EntityBrowserComponent
         {
             public EntityComponentData _component;

@@ -9,13 +9,14 @@ namespace BB
 			container.Instance(GetType(), this);
 		}
 	}
-    public abstract class LoadableInstallerAsset : InstallerAsset, ILoadableAsset
+    public abstract class LoadableInstallerAsset : LoadableScriptableObject, IEntityInstaller
     {
-		public string _assetLoadKey;
-        public string AssetLoadKey
+		public string Name => name;
+		public virtual void Install(IDiContainer container)
 		{
-			get => _assetLoadKey;
-			set => _assetLoadKey = value;
+			container.Instance(GetType(), this);
 		}
+
+		public override string DefaultNamePrefix => "installer";
     }
 }

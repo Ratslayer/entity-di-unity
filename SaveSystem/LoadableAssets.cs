@@ -6,11 +6,36 @@ using System.Linq;
 
 
 #if UNITY_EDITOR
+using BB.Actions;
 using UnityEditor;
 #endif
 
 namespace BB
 {
+    public static class LoadableAssetsUtils
+    {
+        public static void SetNameToInit(LoadableScriptableObject asset)
+        {
+            var tokens = asset.name.SplitByWords();
+            var prefix = asset.DefaultNamePrefix;
+            // var prefix = asset switch
+            // {
+            //     BaseBoardKey => "board_key",
+            //     BaseItemAsset => "item",
+            //     PlayerActionAsset => "player_action",
+            //     _ => "asset"
+            // };
+
+            var suffix = string.Join('_', tokens);
+            var name = string.Join('_', prefix, suffix);
+
+            Log.Info($"{asset.name} will have its key set to {name}");
+
+            asset.AssetLoadKey = name;
+            asset.Dirty();
+        }
+    }
+
     public sealed class LoadableAssets : BaseScriptableObject, ILoadableAssets
     {
         [SerializeField, ReadOnly] LoadableAsset[] _assets = { };
@@ -63,11 +88,11 @@ namespace BB
         {
             AddAssets(Filter);
 
-            ILoadableAsset Filter(ILoadableAsset asset)
+            LoadableScriptableObject Filter(LoadableScriptableObject asset)
             {
                 if (string.IsNullOrWhiteSpace(asset.AssetLoadKey))
                 {
-                    Log.Error($"{((BaseScriptableObject)asset).name} is loadable but has no load key.");
+                    Log.Error($"{asset.name} is loadable but has no load key.");
                     return null;
                 }
 
@@ -78,50 +103,31 @@ namespace BB
         [Button]
         void AddAndInitAllAssets()
         {
-            AddAssets(Filter);
+            AddAssets(Init);
 
-            ILoadableAsset Filter(ILoadableAsset asset)
+            LoadableScriptableObject Init(LoadableScriptableObject asset)
             {
-                if (!string.IsNullOrWhiteSpace(asset.AssetLoadKey))
-                    return asset;
-
-                var a = (BaseScriptableObject)asset;
-                var tokens = a.name.SplitByWords();
-                var prefix = a switch
-                {
-                    BaseBoardKey => "board_key",
-                    BaseItemAsset => "item",
-                    _ => "asset"
-                };
-
-                var suffix = string.Join('_', tokens);
-                var name = string.Join('_', prefix, suffix);
-
-                Log.Info($"{a.name} will have its key set to {name}");
-
-                asset.AssetLoadKey = name;
-                a.Dirty();
+                if (string.IsNullOrWhiteSpace(asset.AssetLoadKey))
+                    LoadableAssetsUtils.SetNameToInit(asset);
 
                 return asset;
             }
         }
 
-        void AddAssets(Func<ILoadableAsset, ILoadableAsset> filter)
+        void AddAssets(Func<LoadableScriptableObject, LoadableScriptableObject> filter)
         {
-            var assetIds = AssetDatabase.FindAssets($"t:{nameof(BaseScriptableObject)}");
+            var assetIds = AssetDatabase.FindAssets($"t:{nameof(LoadableScriptableObject)}");
             var assets = new List<LoadableAsset>();
             foreach (var id in assetIds)
             {
                 var path = AssetDatabase.GUIDToAssetPath(id);
-                var asset = AssetDatabase.LoadAssetAtPath<BaseScriptableObject>(path);
-                if (asset is not ILoadableAsset la)
-                    continue;
-                la = filter(la);
-                if (la is null)
+                var asset = AssetDatabase.LoadAssetAtPath<LoadableScriptableObject>(path);
+                asset = filter(asset);
+                if (asset is null)
                     continue;
                 assets.Add(new()
                 {
-                    _name = la.AssetLoadKey,
+                    _name = asset.AssetLoadKey,
                     _asset = asset
                 });
             }
