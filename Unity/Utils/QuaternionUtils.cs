@@ -32,4 +32,7 @@ public static class QuaternionUtils
 		var newUp = Vector3.Cross(forward, right);
 		t.LookAt(t.position + forward, newUp);
 	}
+
+	public static Quaternion Inverse(this Quaternion q)
+		=> Quaternion.Inverse(q);
 }
