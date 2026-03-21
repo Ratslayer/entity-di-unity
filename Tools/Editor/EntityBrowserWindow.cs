@@ -48,7 +48,7 @@ namespace BB
         void UpdateEntities()
         {
             _entities.Clear();
-            var rootEntity = Application.isPlaying ? WorldBootstrap.World.Core.Entity : EditorWorld.Entity;
+            var rootEntity = WorldBootstrap.World.Core.Entity;
             if (rootEntity is null)
                 return;
             var entitiesQueue = new List<IEntity>() { rootEntity };

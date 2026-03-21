@@ -4,9 +4,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-
 #if UNITY_EDITOR
-using BB.Actions;
 using UnityEditor;
 #endif
 
@@ -18,14 +16,6 @@ namespace BB
         {
             var tokens = asset.name.SplitByWords();
             var prefix = asset.DefaultNamePrefix;
-            // var prefix = asset switch
-            // {
-            //     BaseBoardKey => "board_key",
-            //     BaseItemAsset => "item",
-            //     PlayerActionAsset => "player_action",
-            //     _ => "asset"
-            // };
-
             var suffix = string.Join('_', tokens);
             var name = string.Join('_', prefix, suffix);
 
@@ -133,6 +123,20 @@ namespace BB
             }
 
             _assets = assets.ToArray();
+        }
+
+        public void AddAsset(LoadableScriptableObject asset)
+        {
+            if (_assets.Contains(a => a._name == asset.AssetLoadKey))
+                throw new Exception($"Asset with key {asset.AssetLoadKey} already exists.");
+            
+            _assets = _assets
+                .Append(new()
+                {
+                    _name = asset.AssetLoadKey,
+                    _asset = asset
+                }).ToArray();
+            Dirty();
         }
 #endif
     }

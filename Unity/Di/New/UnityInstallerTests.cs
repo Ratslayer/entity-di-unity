@@ -59,7 +59,7 @@ namespace BB.Di
             {
                 try
                 {
-                    WorldBootstrap.CreateWorld();
+                    WorldBootstrap.CreateWorld(UnityWorldBootstrap.Settings._runtimeConfig);
                     var setup = WorldBootstrap.World;
                     setup.CreateCore(world._coreInstaller);
                     setup.CreateGame(world._gameInstaller);
