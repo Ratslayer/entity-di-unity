@@ -1,6 +1,5 @@
 ﻿using UnityEditor;
 using UnityEngine;
-using YamlDotNet.Serialization;
 
 namespace BB.Di
 {
@@ -10,7 +9,7 @@ namespace BB.Di
         static UnityEditorWorldBootstrap()
         {
             Debug.Log("Creating editor world");
-            
+
             SubscribeToEvents();
 
             var settings = UnityWorldBootstrap.Settings;
@@ -30,8 +29,11 @@ namespace BB.Di
 
         static void OnPlayModeChanged(PlayModeStateChange state)
         {
-            if (state is PlayModeStateChange.ExitingPlayMode)
-                WorldBootstrap.SpawnWorld(UnityWorldBootstrap.Settings._editorConfig);
+            if (state is not PlayModeStateChange.ExitingPlayMode)
+                return;
+            
+            Debug.Log("Creating editor world");
+            WorldBootstrap.SpawnWorld(UnityWorldBootstrap.Settings._editorConfig);
         }
     }
 }

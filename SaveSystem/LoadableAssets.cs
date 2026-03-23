@@ -19,7 +19,10 @@ namespace BB
             var suffix = string.Join('_', tokens);
             var name = string.Join('_', prefix, suffix);
 
-            Log.Info($"{asset.name} will have its key set to {name}");
+            World.Entity
+                .GetLogger()
+                .WithUnityObject(asset)
+                .Info($"{asset.name} will have its key set to {name}");
 
             asset.AssetLoadKey = name;
             asset.Dirty();
@@ -39,7 +42,7 @@ namespace BB
         }
 
         public bool HasAsset<T>(string key, out T asset)
-            where T : BaseScriptableObject, ILoadableAsset
+            where T : class, ILoadableAsset
         {
             foreach (var a in _assets)
             {
@@ -82,7 +85,10 @@ namespace BB
             {
                 if (string.IsNullOrWhiteSpace(asset.AssetLoadKey))
                 {
-                    Log.Error($"{asset.name} is loadable but has no load key.");
+                    World.Entity
+                        .GetLogger()
+                        .WithUnityObject(asset)
+                        .Error($"{asset.name} is loadable but has no load key.");
                     return null;
                 }
 
@@ -129,7 +135,7 @@ namespace BB
         {
             if (_assets.Contains(a => a._name == asset.AssetLoadKey))
                 throw new Exception($"Asset with key {asset.AssetLoadKey} already exists.");
-            
+
             _assets = _assets
                 .Append(new()
                 {

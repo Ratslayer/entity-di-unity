@@ -104,7 +104,7 @@ namespace BB.Di
             void LogError(string message)
             {
                 var installerName = string.Join('/', entities.Select(e => e?.Name ?? "NULL"));
-                Log.Error($"Error during test in installer {installerName}: {message}");
+                World.Entity.GetLogger().Error($"Error during test in installer {installerName}: {message}");
             }
             //bool AssertInstallerExists(UnityEngine.Object installer)
             //{

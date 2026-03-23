@@ -3,18 +3,21 @@
 namespace BB.Di
 {
     public sealed class UnityFromInstallerSpawner
-          : BaseEntitySpawnManager<IUnityFromInstallerSpawner.CommonContext>, IUnityFromInstallerSpawner
+        : BaseEntitySpawnManager<IUnityFromInstallerSpawner.CommonContext>, IUnityFromInstallerSpawner
     {
         [Inject] IPrefabSpawnManager _prefabSpawnManager;
+
         public Entity Spawn(in IUnityFromInstallerSpawner.Context3D context)
         {
-            if (Log.Assert(context.Installer is not null, "Installer is null"))
+            if (GetLogger().NotTrue(context.Installer is not null, "Installer is null"))
                 return default;
 
-            var prefab = context.Prefab ? context.Prefab
-                : context.Installer.Prefab ? context.Installer.Prefab.gameObject
-                : null;
-            if (Log.Assert(prefab, "Prefab is null or destroyed"))
+            var prefab = context.Prefab
+                ? context.Prefab
+                : context.Installer?.Prefab
+                    ? context.Installer.Prefab.gameObject
+                    : null;
+            if (GetLogger().NotTrue(prefab, "Prefab is null or destroyed"))
                 return default;
 
             var entity = GetUnspawnedEntity(new()
@@ -36,13 +39,13 @@ namespace BB.Di
 
         public Entity Spawn(in IUnityFromInstallerSpawner.Context2D context)
         {
-            if (Log.Assert(context.Installer is not null, "Installer is null"))
+            if (GetLogger().NotTrue(context.Installer is not null, "Installer is null"))
                 return default;
 
             var prefab = context.Prefab ? context.Prefab
                 : context.Installer.Prefab ? context.Installer.Prefab.gameObject
                 : null;
-            if (Log.Assert(prefab, "Prefab is null or destroyed"))
+            if (GetLogger().NotTrue(prefab, "Prefab is null or destroyed"))
                 return default;
 
             var entity = GetUnspawnedEntity(new()
@@ -61,6 +64,7 @@ namespace BB.Di
             entity.SetState(EntityState.Enabled);
             return entity.GetToken();
         }
+
         protected override void InitEntityBeforeInjection(
             IEntity entity,
             in IUnityFromInstallerSpawner.CommonContext context)
@@ -69,6 +73,7 @@ namespace BB.Di
             entity.AttachGameObject(instance);
         }
     }
+
     public static class UnityEntityExtensions
     {
         public static void AttachGameObject(this IEntity entity, GameObject instance)
@@ -79,15 +84,16 @@ namespace BB.Di
             if (instance.TryGetComponent(out BaseEntityGameObject entityGameObject))
                 entityGameObject.Init(entity);
         }
+
         public static bool IsInstaller2D(this Entity entity, in Installer2DAdapter installer)
         {
             if (entity._ref is not IEntityDetails details)
                 return false;
 
-            if (installer.Installer 
+            if (installer.Installer
                 && details.Installer as InstallerAsset2D == installer.Installer)
                 return true;
-            if (installer.PrefabInstaller 
+            if (installer.PrefabInstaller
                 && details.Installer as EntityGameObject2D == installer.PrefabInstaller)
                 return true;
             return false;
