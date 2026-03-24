@@ -8,18 +8,8 @@ namespace BB.Di
     {
         static UnityEditorWorldBootstrap()
         {
-            Debug.Log("Creating editor world");
-
             SubscribeToEvents();
-
-            var settings = UnityWorldBootstrap.Settings;
-            if (!settings)
-            {
-                settings = new();
-                AssetDatabase.CreateAsset(settings, "Assets/Resources/UnityWorldBootstrapSettings.asset");
-            }
-
-            WorldBootstrap.SpawnWorld(settings._editorConfig);
+            BuildWorld();
         }
 
         static void SubscribeToEvents()
@@ -34,6 +24,20 @@ namespace BB.Di
             
             Debug.Log("Creating editor world");
             WorldBootstrap.SpawnWorld(UnityWorldBootstrap.Settings._editorConfig);
+        }
+
+        public static void BuildWorld()
+        {
+            Debug.Log("Creating editor world");
+            
+            var settings = UnityWorldBootstrap.Settings;
+            if (!settings)
+            {
+                settings = new();
+                AssetDatabase.CreateAsset(settings, "Assets/Resources/UnityWorldBootstrapSettings.asset");
+            }
+
+            WorldBootstrap.SpawnWorld(settings._editorConfig);
         }
     }
 }
