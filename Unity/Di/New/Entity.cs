@@ -5,14 +5,9 @@ namespace BB
 {
     public readonly partial struct Entity
     {
-        // public void LogInfo(string msg) => Log(msg, LogLevel.Info);
-        // public void LogError(string msg) => Log(msg, LogLevel.Error);
-        // void Log(string msg, LogLevel level)
-        // {
-        //     _ref?.World.Logger.Log(msg, level);
-        // }
         public static GameObject SpawnPrefab3D(in SpawnPrefab3DContext context)
         {
+            AssertWorldExists();
             var spawner = World.Require<IPrefabSpawnManager>();
             var instance = spawner.GetDisabledInstance(context.Prefab);
             context.Transform?.Apply(instance);
@@ -21,6 +16,7 @@ namespace BB
         }
         public static GameObject SpawnPrefab2D(in SpawnPrefab2DContext context)
         {
+            AssertWorldExists();
             var spawner = World.Require<IPrefabSpawnManager>();
             var instance = spawner.GetDisabledInstance(context.Prefab.Transform.gameObject);
             context.Transform?.Apply(instance);
@@ -43,6 +39,7 @@ namespace BB
             }).GetComponent<T>();
         public static Entity Spawn(in SpawnEntityFromInstaller3DContext context)
         {
+            AssertWorldExists();
             var spawner = World.Require<IUnityFromInstallerSpawner>();
             var entity = spawner.Spawn(new IUnityFromInstallerSpawner.Context3D()
             {
@@ -59,6 +56,7 @@ namespace BB
 
         public static Entity Spawn(in SpawnEntityFromInstaller2DContext context)
         {
+            AssertWorldExists();
             var spawner = World.Require<IUnityFromInstallerSpawner>();
             var entity = spawner.Spawn(new IUnityFromInstallerSpawner.Context2D()
             {
@@ -74,6 +72,7 @@ namespace BB
         }
         public static Entity Spawn(in SpawnEntity2DContext context)
         {
+            AssertWorldExists();
             Entity entity;
             if (context.Installer.Installer)
             {
@@ -105,6 +104,7 @@ namespace BB
         }
         public static Entity Spawn(in SpawnEntityFromPrefab3DContext context)
         {
+            AssertWorldExists();
             var spawner = World.Require<IUnityFromPrefabSpawner>();
             var entity = spawner.Spawn(new IUnityFromPrefabSpawner.Context3D()
             {
@@ -120,6 +120,7 @@ namespace BB
         }
         public static Entity Spawn(in SpawnEntityFromPrefab2DContext context)
         {
+            AssertWorldExists();
             var spawner = World.Require<IUnityFromPrefabSpawner>();
             var entity = spawner.Spawn(new IUnityFromPrefabSpawner.Context2D()
             {
@@ -137,6 +138,12 @@ namespace BB
         private static void RegisterIfSerializable(Entity entity, string serializationName)
         {
             EntitySerializationUtils.RegisterAsSerializedEntity(entity, serializationName);
+        }
+
+        static void AssertWorldExists()
+        {
+            if (!World.Entity)
+                throw new DiException("Attempted to spawn a new entity with invalid world.");
         }
     }
 }
