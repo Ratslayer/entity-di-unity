@@ -12,5 +12,8 @@ namespace BB
 		public static bool IsNullOrDestroyed<T>(this T t)
             where T : class
             => t.NullIfDestroyedUnityEngineObject() is null;
-    }
+
+		public static string GetNameSafe(this Object obj)
+			=> obj ? obj.name : "NONE";
+	}
 }
