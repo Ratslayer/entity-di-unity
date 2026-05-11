@@ -1,12 +1,24 @@
 ﻿using BB.Di;
 using UnityEngine;
+
 namespace BB
 {
     public abstract class EntityChildComponent : BaseComponent
     {
         public BaseEntityGameObject EntityGameObject => GetComponentInParent<BaseEntityGameObject>();
-        public Entity Entity => EntityGameObject.Entity;
+
+        public Entity Entity
+        {
+            get
+            {
+                var go = EntityGameObject;
+                if (go)
+                    return go.Entity;
+                return default;
+            }
+        }
     }
+
     public abstract class BaseGameInstallerAsset : LoadableInstallerAsset
     {
         public abstract PlayerInstaller PlayerInstaller { get; }
@@ -21,6 +33,7 @@ namespace BB
             container.Service<IUnityFromPrefabSpawner, UnityFromPrefabSpawner>();
         }
     }
+
     public abstract class BaseCoreInstallerAsset : InstallerAsset
     {
         public override void Install(IDiContainer container)
@@ -32,6 +45,7 @@ namespace BB
             container.Service<IUnityFromInstallerSpawner, UnityFromInstallerSpawner>();
             container.Service<IUnityFromPrefabSpawner, UnityFromPrefabSpawner>();
         }
+
         sealed class BindUpdates : EntitySystem
         {
             [OnEvent]

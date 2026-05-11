@@ -16,7 +16,7 @@ namespace BB
 			if (c != PlayModeStateChange.ExitingPlayMode)
 				return;
 			EditorApplication.playModeStateChanged -= Quit;
-			WorldBootstrap.World.ClearCore();
+			// WorldBootstrap.World.ClearCore();
 		}
 	}
 }
