@@ -238,11 +238,12 @@ namespace BB
                 foreach (var ec in entry._components)
                 {
                     var comp = ec._component;
+                    var name = ec._component.ContractType.Name;
                     switch (comp.Instance)
                     {
                         case IStackValue stack:
                             var topValue = stack.GetTypelessSourceValues().FirstOrDefault().Value;
-                            EditorGuiUtils.Foldout($"{stack.GetType().Name}:{GetLabel(topValue)}", stack,
+                            EditorGuiUtils.Foldout($"{name}:{GetLabel(topValue)}", stack,
                                 () =>
                                 {
                                     foreach (var value in stack.GetTypelessSourceValues())
@@ -255,7 +256,7 @@ namespace BB
                                 () => SelectObjButton(topValue));
                             break;
                         case IBoard board:
-                            DrawFoldout(board.GetType().Name, board, () => { EditorBoardUtils.DrawBoard(board); });
+                            DrawFoldout(name, board, () => { EditorBoardUtils.DrawBoard(board); });
                             break;
                         case IEvent e:
                             if (e is not IEventHandlers h || h.Handlers.Count == 0)
