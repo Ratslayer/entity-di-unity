@@ -15,36 +15,43 @@ namespace BB
         public string Path { get; init; }
         public object Data { get; init; }
     }
+
     public readonly struct ReadFileContext
     {
         public string Path { get; init; }
     }
+
     public readonly struct SerializableEntity
     {
         public Entity Entity { get; init; }
         public string Path { get; init; }
         public Scene Scene { get; init; }
     }
+
     public readonly struct SaveGameContext
     {
         public string FilePath { get; init; }
     }
+
     public readonly struct LoadGameContext
     {
         public string FilePath { get; init; }
     }
+
     public readonly struct LoadGameData
     {
         public ISerializableComponent Component { get; init; }
         public IEntityComponentSerializer Serializer { get; init; }
         public object SerializedData { get; init; }
     }
+
     public interface IGameSaveSystem
     {
         UniTask SaveGame(SaveGameContext e);
         UniTask LoadGame(LoadGameContext e);
         string GetFullPath(string fileName);
     }
+
     public sealed class GameSaveSystem : EntitySystem, IGameSaveSystem
     {
         [Inject] ILoadableAssets _assets;
@@ -64,7 +71,7 @@ namespace BB
                 LogError($"Installer for Game entity is not registered as a loadable asset. Can't save game.");
                 return;
             }
-            
+
             var noSceneDatas = new List<EntitySaveData>();
 
             var openScenes = _sceneManager.GetAllOpenScenes();
@@ -73,7 +80,7 @@ namespace BB
                 scenes.Add(openScene, new());
 
             var entities = GetSerializableEntities(Core);
-            foreach (var ed in entities)
+            foreach (var ed in entities.Values)
             {
                 var datas = GetDataList(ed.Entity);
                 var data = GetEntitySaveData(ed.Entity, ed.Path);
@@ -117,13 +124,15 @@ namespace BB
 
             scenes.DisposeAndClear();
             sceneDatas.DisposeElementsAndClear();
-            
+
             LogInfo($"Saved game to {filePath}");
+
             EntitySaveData GetEntitySaveData(Entity entity, string serializedPath = null)
             {
                 var details = (IEntityDetails)entity._ref;
                 var factoryName = details.Installer is ILoadableAsset asset
-                    ? asset.AssetLoadKey : string.Empty;
+                    ? asset.AssetLoadKey
+                    : string.Empty;
                 var components = PooledList<EntityComponentSaveData>.GetPooled();
                 var elements = details.GetElements();
                 foreach (var element in elements)
@@ -148,6 +157,7 @@ namespace BB
                     SaveDatas = components,
                 };
             }
+
             void AddToSerialization(Entity entity, string path)
             {
                 if (!entity)
@@ -164,6 +174,7 @@ namespace BB
                 foreach (var child in entity._ref.Children)
                     AddToSerialization(child.GetToken(), newPath);
             }
+
             List<EntitySaveData> GetDataList(Entity entity)
             {
                 List<EntitySaveData> datas;
@@ -180,10 +191,11 @@ namespace BB
                 return datas;
             }
         }
+
         public async UniTask LoadGame(LoadGameContext e)
         {
             var path = GetSavePath(e.FilePath);
-            
+
             LogInfo($"Began loading game from {path}");
             var saveData = await _fileSystem.Read<GameSaveData>(new()
             {
@@ -239,7 +251,7 @@ namespace BB
                 {
                     foreach (var data in sceneData.EntitySaveDatas)
                     {
-                        if (!entities.TryGetValue(e => e.Path == data.EntityPath, out var entity))
+                        if (!entities.TryGetValue(data.EntityPath, out var entity))
                         {
                             LogError($"No entity found with path '{data.EntityPath}'");
                             continue;
@@ -248,13 +260,15 @@ namespace BB
                         ApplySaveData(entity.Entity, data);
                     }
                 }
+
                 _afterGameLoad.Publish();
                 LogInfo($"Loaded game from {path}");
             }
         }
-        PooledList<SerializableEntity> GetSerializableEntities(Entity root)
+
+        PooledDictionary<string, SerializableEntity> GetSerializableEntities(Entity root)
         {
-            var result = PooledList<SerializableEntity>.GetPooled();
+            var result = PooledDictionary<string, SerializableEntity>.GetPooled();
             AddSelfAndChildren(root, null);
             return result;
 
@@ -268,19 +282,24 @@ namespace BB
                     return;
 
                 var newPath = string.Join('/', path, entity._ref.SerializationName);
-                var scene = entity.Has(out Root root) ? root.Transform.gameObject.scene : default;
-                result.Add(new SerializableEntity
+                if (result.ContainsKey(newPath))
+                    entity.GetLogger().Error($"Duplicate serializable entity path '{newPath}'");
+                else
                 {
-                    Entity = entity,
-                    Scene = scene,
-                    Path = newPath
-                });
+                    var scene = entity.Has(out Root root) ? root.Transform.gameObject.scene : default;
+                    result.Add(newPath, new SerializableEntity
+                    {
+                        Entity = entity,
+                        Scene = scene,
+                        Path = newPath
+                    });
+                }
 
                 foreach (var child in entity._ref.Children)
                     AddSelfAndChildren(child.GetToken(), newPath);
             }
-
         }
+
         void ApplySaveData(Entity entity, EntitySaveData saveData)
         {
             if (saveData.SaveDatas.IsNullOrEmpty())
@@ -305,6 +324,7 @@ namespace BB
                     LogError($"Entity {entity} contains multiple components with name {type.Name}");
                     continue;
                 }
+
                 components.Add(type.Name, comp.Instance);
             }
 
@@ -334,7 +354,7 @@ namespace BB
                 if (serializers.Length <= data.SerializerIndex)
                 {
                     LogError($"Component {data.ComponentName} has {serializers.Length} serializers, " +
-                        $"while serialized index is {data.SerializerIndex}");
+                             $"while serialized index is {data.SerializerIndex}");
                     continue;
                 }
 
@@ -367,28 +387,35 @@ namespace BB
                 });
             }
         }
+
         string GetSavePath(string path) => $"Saves/{path}.txt";
+
         public string GetFullPath(string fileName)
             => _fileSystem.GetFullPath(GetSavePath(fileName));
+
         Entity Core => WorldBootstrap.World.Core.Entity.GetToken();
         Entity Game => WorldBootstrap.World.Game.Entity.GetToken();
+
         readonly struct TempEntitySaveData
         {
             public Scene Scene { get; init; }
             public IEntity Entity { get; init; }
         }
     }
+
     public sealed class GameSaveData
     {
         public int Version { get; init; }
         public string GameInstaller { get; init; }
         public List<SceneSaveData> SceneSaveDatas { get; init; }
     }
+
     public sealed class SceneSaveData
     {
         public string SceneName { get; init; }
         public List<EntitySaveData> EntitySaveDatas { get; init; }
     }
+
     public sealed class EntitySaveData
     {
         public string EntityPath { get; init; }
@@ -396,24 +423,28 @@ namespace BB
         public EntityState State { get; init; }
         public List<EntityComponentSaveData> SaveDatas { get; init; }
     }
+
     public sealed class EntityComponentSaveData
     {
         public string ComponentName { get; init; }
         public int SerializerIndex { get; init; }
         public object SerializedData { get; init; }
     }
+
     public interface IEntityComponentSerializer
     {
         object Serialize(object target);
         void ApplySpawn(in DeserializationContext context);
         void ApplyAfterSpawn(in DeserializationContext context);
     }
+
     public readonly struct DeserializationContext
     {
         public Entity Entity { get; init; }
         public ISerializableComponent Component { get; init; }
         public object SerializedData { get; init; }
     }
+
     public interface ISerializableComponent
     {
         IEntityComponentSerializer[] GetSerializers();
