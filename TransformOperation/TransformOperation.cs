@@ -27,6 +27,7 @@ namespace BB
         }
         public Vector3Adapter Position
         {
+            get => _position;
             init
             {
                 _position = value;

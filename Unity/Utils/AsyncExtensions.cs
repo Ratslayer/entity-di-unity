@@ -2,6 +2,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
+
 namespace BB
 {
     public static class AsyncExtensions
@@ -16,6 +17,7 @@ namespace BB
                 return s1;
             return CancellationTokenSource.CreateLinkedTokenSource(s1.Token, s2.Token);
         }
+
         public static CancellationTokenSource Link(
             this CancellationTokenSource s1,
             CancellationTokenSource s2,
@@ -29,19 +31,35 @@ namespace BB
                 return s1;
             return CancellationTokenSource.CreateLinkedTokenSource(s1.Token, s2.Token, ct);
         }
+
         public static void CancelAfter(this CancellationTokenSource token, UniTask task)
         {
             Cancel(token, task).Forget();
+
             static async UniTaskVoid Cancel(CancellationTokenSource token, UniTask task)
             {
                 await task;
                 token.Cancel();
             }
         }
+
+        public static async UniTask Then(this UniTask task, Action action)
+        {
+            await task;
+            action();
+        }
+
+        public static async UniTask ThenAsync(this UniTask task, Func<UniTask> action)
+        {
+            await task;
+            await action();
+        }
+
         public static UniTask<T> WaitForEvent<T>(
             this IEvent<T> e,
             CancellationToken ct)
             => WaitForEvent(e, null, ct);
+
         public static async UniTask<T> WaitForEvent<T>(
             this IEvent<T> e,
             Predicate<T> predicate,
@@ -50,6 +68,7 @@ namespace BB
             var task = await WaitForEvent(e, null, predicate, ct);
             return task._event;
         }
+
         public static async UniTask<EventAsyncResult<T>> WaitForEventWithTimeout<T>(
             this IEvent<T> e,
             float seconds,
@@ -61,10 +80,12 @@ namespace BB
                 var result = await WaitForEvent(e, predicate, ct);
                 return new(false, result);
             }
+
             var tokenSource = new CancellationTokenSource();
             tokenSource.CancelAfterSlim(TimeSpan.FromSeconds(seconds));
             return await WaitForEvent(e, tokenSource, predicate, ct);
         }
+
         static async UniTask<EventAsyncResult<T>> WaitForEvent<T>(
             this IEvent<T> e,
             CancellationTokenSource timeoutSource,
@@ -94,6 +115,7 @@ namespace BB
                     return ToResult(false);
                 if (eventPredicate is null || eventPredicate(eventValue))
                     return ToResult(true);
+
                 EventAsyncResult<T> ToResult(bool worked)
                 {
                     e.Unsubscribe(handler);
@@ -101,6 +123,7 @@ namespace BB
                 }
             }
         }
+
         public static async UniTask WaitForDespawn(this Entity entity, CancellationToken ct)
         {
             while (true)
@@ -110,6 +133,7 @@ namespace BB
                 await UniTask.DelayFrame(1, cancellationToken: ct);
             }
         }
+
         public static UniTask ToUniTask(this Tween tween, CancellationToken ct)
             => tween.ToUniTask(TweenCancelBehaviour.KillAndCancelAwait, ct);
     }

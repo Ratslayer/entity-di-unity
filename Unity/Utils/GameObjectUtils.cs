@@ -67,6 +67,8 @@ namespace BB
             => comp.gameObject.DespawnChildren();
         public static void Despawn(this GameObject go)
         {
+            if (!go)
+                return;
             if (go.TryGetComponent(out PooledGameObject pgo))
                 pgo.Despawn();
             else if (go.TryGetComponent(out BaseEntityInstallerGameObject bgo))
