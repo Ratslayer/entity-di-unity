@@ -32,6 +32,14 @@ namespace BB
             pgo.Despawn();
         }
 
+        [OnEvent]
+        void OnDestroyed(EntityDestroyedEvent _)
+        {
+            var ego = _gameObject.GameObject.GetComponent<BaseEntityGameObject>();
+            ego.ClearEntity();
+            _gameObject.GameObject.Destroy();
+        }
+
         #endregion
     }
 }

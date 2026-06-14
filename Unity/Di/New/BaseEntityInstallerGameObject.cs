@@ -38,9 +38,8 @@ namespace BB
         protected abstract IEntity SpawnEntity();
         private void OnDestroy()
         {
-            if (_selfSpawned)
-                _entityRef.SetState(EntityState.Destroyed);
-            else _entityRef.SetState(EntityState.Despawned);
+            if(_entityRef is not null)
+                Debug.LogError($"Destroying EGO {name} without clearing its entity {_entityRef.Name}");
         }
 
 #if UNITY_EDITOR

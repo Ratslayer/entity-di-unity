@@ -18,6 +18,7 @@ namespace BB
         readonly Transform _parent;
         readonly Vector2 _sizeDelta, _anchoredPosition;
         readonly AnchorSides _sides;
+        
         public TransformAdapter Parent
         {
             init
@@ -50,6 +51,7 @@ namespace BB
                 _usage |= TransformOperation2DUsage.AnchoredPosition;
             }
         }
+        public bool DoNotDestroyOnLoad { get; init; }
         public bool StretchToFull
         {
             init
@@ -64,7 +66,12 @@ namespace BB
             var rt = ta._rt;
             if (!rt)
                 return;
-            if (_usage.HasFlag(TransformOperation2DUsage.Parent))
+            if (DoNotDestroyOnLoad)
+            {
+                rt.SetParent(null);
+                UnityEngine.Object.DontDestroyOnLoad(rt.gameObject);
+            }
+            else if (_usage.HasFlag(TransformOperation2DUsage.Parent))
                 rt.SetParent(_parent);
             if (_usage.HasFlag(TransformOperation2DUsage.SizeDelta))
                 rt.sizeDelta = _sizeDelta;
@@ -152,6 +159,7 @@ namespace BB
             _sizeDelta = sizeDelta;
             _anchoredPosition = anchoredPosition;
             _sides = sides;
+            DoNotDestroyOnLoad = false;
         }
         #endregion
     }

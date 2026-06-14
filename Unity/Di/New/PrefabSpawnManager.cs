@@ -38,6 +38,13 @@ namespace BB
             _poolsParent = new GameObject("Prefabs");
             Object.DontDestroyOnLoad(_poolsParent);
         }
+
+        [OnEvent]
+        void Destroy(EntityDestroyedEvent _)
+        {
+            _poolsParent.Destroy();
+            _poolsParent = null;
+        }
         sealed class PrefabPool : IPrefabPool
         {
             public GameObject Prefab { get; init; }

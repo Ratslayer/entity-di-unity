@@ -36,6 +36,7 @@ namespace BB
     public readonly struct LoadGameContext
     {
         public string FilePath { get; init; }
+        public Action PostLoadAction { get; init; }
     }
 
     public readonly struct LoadGameData
@@ -260,7 +261,9 @@ namespace BB
                         ApplySaveData(entity.Entity, data);
                     }
                 }
-
+                
+                e.PostLoadAction?.Invoke();
+                
                 _afterGameLoad.Publish();
                 LogInfo($"Loaded game from {path}");
             }
