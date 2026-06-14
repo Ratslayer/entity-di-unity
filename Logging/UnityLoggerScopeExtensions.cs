@@ -13,5 +13,11 @@
             scope.AddToScope(UnityLoggerConstants.Target, entity);
             return scope;
         }
+
+        public static ILoggerScope WithScope(this ILoggerScope scope, string key, string value)
+        {
+            scope.AddToScope(key, value);
+            return scope;
+        }
     }
 }

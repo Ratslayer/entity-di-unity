@@ -261,9 +261,9 @@ namespace BB
                         ApplySaveData(entity.Entity, data);
                     }
                 }
-                
+
                 e.PostLoadAction?.Invoke();
-                
+
                 _afterGameLoad.Publish();
                 LogInfo($"Loaded game from {path}");
             }
@@ -372,12 +372,23 @@ namespace BB
 
             foreach (var data in serializableDatas)
             {
-                data.Serializer.ApplySpawn(new()
+                try
                 {
-                    Entity = entity,
-                    Component = data.Component,
-                    SerializedData = data.SerializedData
-                });
+                    data.Serializer.ApplySpawn(new()
+                    {
+                        Entity = entity,
+                        Component = data.Component,
+                        SerializedData = data.SerializedData
+                    });
+                }
+                catch (Exception e)
+                {
+                    entity
+                        .GetLogger()
+                        .WithScope("serialized_component", data.Component.GetType().Name)
+                        .WithScope("serializer_type", data.Serializer.GetType().Name)
+                        .Exception(e, "Exception while deserializing component");
+                }
             }
 
             foreach (var data in serializableDatas)
