@@ -96,6 +96,11 @@ public struct Raycast
     }
 }
 
+public readonly struct OverlapArgs
+{
+    public int LayerMask { get; init; }
+    public QueryTriggerInteraction Trigger { get; init; }
+}
 public readonly struct RaycastArgs
 {
     public readonly Vector3 _direction;
