@@ -1,6 +1,5 @@
 ﻿#if UNITY_EDITOR
 using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,6 +7,10 @@ namespace BB
 {
     public static class HandleUtils
     {
+        private const float BoxHandleSize = 0.08f;
+        private const float MinBoxSize = 0.001f;
+        private const float MoveEpsilon = 0.000001f;
+
         public static Color Color
         {
             get => Handles.color;
@@ -50,33 +53,85 @@ namespace BB
             out Vector3 newCenter,
             out Vector3 newSize)
         {
-            var result = false;
-            newCenter = default;
-            newSize = default;
-            var quadSize = new Vector2(size.x, size.z);
-            //draw bottom
-            if (DrawEditableQuad(center, quadSize,
-                    rotation, true, true, false, out var c, out var s))
-            {
-                result = true;
-                newCenter = c.SetY(center.y);
-                newSize = new(s.x, size.y, s.y);
-            }
-
-            //draw top
-            var topCenter = center + Vector3.up * size.y;
-            if (DrawEditableQuad(topCenter, quadSize,
-                    rotation, true, true, true, out c, out s))
-            {
-                result = true;
-                newCenter = c.SetY(center.y);
-                newSize = new(s.x, size.y + c.y - topCenter.y, s.y);
-            }
-
-            //draw vertical segments
             var up = rotation * Vector3.up;
-            DrawCube(center + size.y * 0.5f * up, size, rotation);
-            return result;
+            size = NormalizeBoxSize(size);
+            var bounds = new Bounds(center + up * size.y * 0.5f, size);
+            if (!DrawEditableBoxBounds(bounds, rotation, out var newBounds))
+            {
+                newCenter = default;
+                newSize = default;
+                return false;
+            }
+
+            if (!moveBottom)
+            {
+                var currentBottom = Vector3.Dot(center, up);
+                var newBottom = Vector3.Dot(newBounds.center, up) - newBounds.size.y * 0.5f;
+                newBounds.center += up * (currentBottom - newBottom);
+            }
+
+            newSize = newBounds.size;
+            newCenter = newBounds.center - up * newSize.y * 0.5f;
+            return true;
+        }
+
+        public static bool DrawEditableBoxBounds(
+            Bounds bounds,
+            Quaternion rotation,
+            out Bounds newBounds)
+        {
+            var handleMatrix = Handles.matrix;
+            var boxToHandle = Matrix4x4.TRS(bounds.center, rotation, Vector3.one);
+            var boxToWorld = handleMatrix * boxToHandle;
+            var worldToBox = boxToWorld.inverse;
+            var size = NormalizeBoxSize(bounds.size);
+            var halfSize = size * 0.5f;
+            var min = -halfSize;
+            var max = halfSize;
+
+            newBounds = new Bounds(bounds.center, size);
+            DrawCube(bounds.center, size, rotation);
+
+            var changed = false;
+            var editedBounds = newBounds;
+            using (new Handles.DrawingScope(Handles.color, Matrix4x4.identity))
+            {
+                DrawCornerHandles(
+                    bounds.center,
+                    rotation,
+                    boxToWorld,
+                    worldToBox,
+                    min,
+                    max,
+                    halfSize,
+                    ref changed,
+                    ref editedBounds);
+
+                DrawEdgeHandles(
+                    bounds.center,
+                    rotation,
+                    boxToWorld,
+                    worldToBox,
+                    min,
+                    max,
+                    halfSize,
+                    ref changed,
+                    ref editedBounds);
+
+                DrawFaceHandles(
+                    bounds.center,
+                    rotation,
+                    boxToWorld,
+                    worldToBox,
+                    min,
+                    max,
+                    halfSize,
+                    ref changed,
+                    ref editedBounds);
+            }
+
+            newBounds = editedBounds;
+            return changed;
         }
 
         public static bool DrawEditableQuad(
@@ -257,6 +312,287 @@ namespace BB
             var offset = right * radius;
             Handles.DrawLine(p1 + offset, p2 + offset, thickness);
             Handles.DrawLine(p1 - offset, p2 - offset, thickness);
+        }
+
+        private static void DrawCornerHandles(
+            Vector3 center,
+            Quaternion rotation,
+            Matrix4x4 boxToWorld,
+            Matrix4x4 worldToBox,
+            Vector3 min,
+            Vector3 max,
+            Vector3 halfSize,
+            ref bool changed,
+            ref Bounds editedBounds)
+        {
+            for (var x = -1; x <= 1; x += 2)
+            for (var y = -1; y <= 1; y += 2)
+            for (var z = -1; z <= 1; z += 2)
+            {
+                var localPosition = new Vector3(
+                    halfSize.x * x,
+                    halfSize.y * y,
+                    halfSize.z * z);
+                var worldPosition = boxToWorld.MultiplyPoint3x4(localPosition);
+                var newWorldPosition = MoveBoxCornerHandle(worldPosition);
+                if (changed || !HasMoved(worldPosition, newWorldPosition))
+                    continue;
+
+                editedBounds = BuildEditedBoxBounds(
+                    center,
+                    rotation,
+                    min,
+                    max,
+                    worldToBox.MultiplyPoint3x4(newWorldPosition),
+                    x,
+                    y,
+                    z);
+                changed = true;
+            }
+        }
+
+        private static void DrawEdgeHandles(
+            Vector3 center,
+            Quaternion rotation,
+            Matrix4x4 boxToWorld,
+            Matrix4x4 worldToBox,
+            Vector3 min,
+            Vector3 max,
+            Vector3 halfSize,
+            ref bool changed,
+            ref Bounds editedBounds)
+        {
+            DrawEdgeHandlesForAxis(0, center, rotation, boxToWorld, worldToBox, min, max, halfSize, ref changed, ref editedBounds);
+            DrawEdgeHandlesForAxis(1, center, rotation, boxToWorld, worldToBox, min, max, halfSize, ref changed, ref editedBounds);
+            DrawEdgeHandlesForAxis(2, center, rotation, boxToWorld, worldToBox, min, max, halfSize, ref changed, ref editedBounds);
+        }
+
+        private static void DrawEdgeHandlesForAxis(
+            int edgeAxis,
+            Vector3 center,
+            Quaternion rotation,
+            Matrix4x4 boxToWorld,
+            Matrix4x4 worldToBox,
+            Vector3 min,
+            Vector3 max,
+            Vector3 halfSize,
+            ref bool changed,
+            ref Bounds editedBounds)
+        {
+            var signAxisA = (edgeAxis + 1) % 3;
+            var signAxisB = (edgeAxis + 2) % 3;
+            for (var signA = -1; signA <= 1; signA += 2)
+            for (var signB = -1; signB <= 1; signB += 2)
+            {
+                var signs = Vector3Int.zero;
+                signs[signAxisA] = signA;
+                signs[signAxisB] = signB;
+
+                var localPosition = new Vector3(
+                    halfSize.x * signs.x,
+                    halfSize.y * signs.y,
+                    halfSize.z * signs.z);
+                var worldPosition = boxToWorld.MultiplyPoint3x4(localPosition);
+                var edgeDirection = boxToWorld.MultiplyVector(GetAxis(edgeAxis)).normalized;
+                var newWorldPosition = MoveBoxEdgeHandle(
+                    worldPosition,
+                    edgeDirection);
+
+                if (changed || !HasMoved(worldPosition, newWorldPosition))
+                    continue;
+
+                var newLocalPosition = worldToBox.MultiplyPoint3x4(newWorldPosition);
+                newLocalPosition[edgeAxis] = localPosition[edgeAxis];
+                editedBounds = BuildEditedBoxBounds(
+                    center,
+                    rotation,
+                    min,
+                    max,
+                    newLocalPosition,
+                    signs.x,
+                    signs.y,
+                    signs.z);
+                changed = true;
+            }
+        }
+
+        private static void DrawFaceHandles(
+            Vector3 center,
+            Quaternion rotation,
+            Matrix4x4 boxToWorld,
+            Matrix4x4 worldToBox,
+            Vector3 min,
+            Vector3 max,
+            Vector3 halfSize,
+            ref bool changed,
+            ref Bounds editedBounds)
+        {
+            DrawFaceHandlesForAxis(0, center, rotation, boxToWorld, worldToBox, min, max, halfSize, ref changed, ref editedBounds);
+            DrawFaceHandlesForAxis(1, center, rotation, boxToWorld, worldToBox, min, max, halfSize, ref changed, ref editedBounds);
+            DrawFaceHandlesForAxis(2, center, rotation, boxToWorld, worldToBox, min, max, halfSize, ref changed, ref editedBounds);
+        }
+
+        private static void DrawFaceHandlesForAxis(
+            int faceAxis,
+            Vector3 center,
+            Quaternion rotation,
+            Matrix4x4 boxToWorld,
+            Matrix4x4 worldToBox,
+            Vector3 min,
+            Vector3 max,
+            Vector3 halfSize,
+            ref bool changed,
+            ref Bounds editedBounds)
+        {
+            for (var sign = -1; sign <= 1; sign += 2)
+            {
+                var signs = Vector3Int.zero;
+                signs[faceAxis] = sign;
+                var localPosition = new Vector3(
+                    halfSize.x * signs.x,
+                    halfSize.y * signs.y,
+                    halfSize.z * signs.z);
+                var worldPosition = boxToWorld.MultiplyPoint3x4(localPosition);
+                var normal = boxToWorld.MultiplyVector(GetAxis(faceAxis) * sign).normalized;
+                var newWorldPosition = MoveBoxFaceHandle(worldPosition, normal);
+                if (changed || !HasMoved(worldPosition, newWorldPosition))
+                    continue;
+
+                var newLocalPosition = worldToBox.MultiplyPoint3x4(newWorldPosition);
+                for (var axis = 0; axis < 3; axis++)
+                {
+                    if (axis != faceAxis)
+                        newLocalPosition[axis] = localPosition[axis];
+                }
+
+                editedBounds = BuildEditedBoxBounds(
+                    center,
+                    rotation,
+                    min,
+                    max,
+                    newLocalPosition,
+                    signs.x,
+                    signs.y,
+                    signs.z);
+                changed = true;
+            }
+        }
+
+        private static Vector3 MoveBoxCornerHandle(Vector3 point)
+        {
+            return Handles.FreeMoveHandle(
+                point,
+                GetBoxHandleSize(point),
+                Vector3.zero,
+                Handles.DotHandleCap);
+        }
+
+        private static Vector3 MoveBoxEdgeHandle(
+            Vector3 point,
+            Vector3 edgeDirection)
+        {
+            var rawPosition = Handles.FreeMoveHandle(
+                point,
+                GetBoxHandleSize(point),
+                Vector3.zero,
+                Handles.DotHandleCap);
+            var delta = Vector3.ProjectOnPlane(rawPosition - point, edgeDirection);
+            return point + delta;
+        }
+
+        private static Vector3 MoveBoxFaceHandle(Vector3 point, Vector3 normal)
+        {
+            var rawPosition = Handles.FreeMoveHandle(
+                point,
+                GetBoxHandleSize(point),
+                Vector3.zero,
+                Handles.DotHandleCap);
+            var delta = rawPosition - point;
+            return point + normal * Vector3.Dot(delta, normal);
+        }
+
+        private static float GetBoxHandleSize(Vector3 point)
+        {
+            return HandleUtility.GetHandleSize(point) * BoxHandleSize;
+        }
+
+        private static Bounds BuildEditedBoxBounds(
+            Vector3 center,
+            Quaternion rotation,
+            Vector3 min,
+            Vector3 max,
+            Vector3 movedLocalPosition,
+            int xSign,
+            int ySign,
+            int zSign)
+        {
+            ApplyMovedHandleAxis(ref min.x, ref max.x, movedLocalPosition.x, xSign);
+            ApplyMovedHandleAxis(ref min.y, ref max.y, movedLocalPosition.y, ySign);
+            ApplyMovedHandleAxis(ref min.z, ref max.z, movedLocalPosition.z, zSign);
+            NormalizeMinMax(ref min, ref max);
+
+            var localCenter = (min + max) * 0.5f;
+            var size = max - min;
+            return new Bounds(center + rotation * localCenter, size);
+        }
+
+        private static void ApplyMovedHandleAxis(
+            ref float min,
+            ref float max,
+            float movedPosition,
+            int sign)
+        {
+            if (sign > 0)
+            {
+                max = movedPosition;
+                return;
+            }
+
+            if (sign < 0)
+                min = movedPosition;
+        }
+
+        private static void NormalizeMinMax(ref Vector3 min, ref Vector3 max)
+        {
+            NormalizeMinMaxAxis(ref min.x, ref max.x);
+            NormalizeMinMaxAxis(ref min.y, ref max.y);
+            NormalizeMinMaxAxis(ref min.z, ref max.z);
+        }
+
+        private static void NormalizeMinMaxAxis(ref float min, ref float max)
+        {
+            if (min > max)
+                (min, max) = (max, min);
+
+            if (max - min >= MinBoxSize)
+                return;
+
+            var center = (min + max) * 0.5f;
+            min = center - MinBoxSize * 0.5f;
+            max = center + MinBoxSize * 0.5f;
+        }
+
+        private static Vector3 NormalizeBoxSize(Vector3 size)
+        {
+            size.x = Mathf.Max(MinBoxSize, Mathf.Abs(size.x));
+            size.y = Mathf.Max(MinBoxSize, Mathf.Abs(size.y));
+            size.z = Mathf.Max(MinBoxSize, Mathf.Abs(size.z));
+            return size;
+        }
+
+        private static Vector3 GetAxis(int axis)
+        {
+            return axis switch
+            {
+                0 => Vector3.right,
+                1 => Vector3.up,
+                _ => Vector3.forward
+            };
+        }
+
+        private static bool HasMoved(Vector3 current, Vector3 next)
+        {
+            return (next - current).sqrMagnitude > MoveEpsilon;
         }
     }
 }
