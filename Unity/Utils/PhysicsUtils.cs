@@ -46,7 +46,8 @@ namespace BB
         {
             return Physics.Raycast(
                 origin, args._direction, out hit,
-                args._distance, args._layerMask, args._triggerInteraction);
+                args._distance, args._layerMask, args._triggerInteraction) 
+                   && hit.collider;
         }
 
         public static bool CapsuleCast(CapsuleCollider collider, float skinWidth, in RaycastArgs args,
